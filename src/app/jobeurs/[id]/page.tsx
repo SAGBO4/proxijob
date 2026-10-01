@@ -144,14 +144,14 @@ export default function JobberDetailPage() {
 
       {/* Profil Header */}
       <div className="bg-white border-b border-slate-200">
-        <div className="container mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row items-start justify-between gap-6">
-            <div className="flex flex-col sm:flex-row items-start gap-5">
-              <div className="relative">
+        <div className="container mx-auto max-w-6xl px-4 py-6 sm:py-8 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row items-center sm:items-start justify-between gap-6 text-center sm:text-left">
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-5">
+              <div className="relative shrink-0">
                 <img
                   src={jobber.avatar}
                   alt={jobber.name}
-                  className="h-24 w-24 sm:h-28 sm:w-28 rounded-2xl object-cover border-2 border-slate-200 shadow-soft"
+                  className="h-20 w-20 sm:h-28 sm:w-28 rounded-2xl object-cover border-2 border-slate-200 shadow-soft"
                 />
                 {jobber.isAvailable && (
                   <span className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 border-2 border-white">
@@ -160,9 +160,9 @@ export default function JobberDetailPage() {
                 )}
               </div>
 
-              <div className="space-y-1.5">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
+              <div className="space-y-1.5 flex flex-col items-center sm:items-start">
+                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                  <h1 className="text-xl sm:text-3xl font-extrabold text-slate-900">
                     {jobber.name}
                   </h1>
                   {jobber.legalStatus === "ENTREPRISE" ? (
@@ -182,7 +182,7 @@ export default function JobberDetailPage() {
                 </p>
 
                 {/* Localisation textuelle sans carte */}
-                <div className="flex flex-wrap items-center gap-2 text-xs text-slate-600 pt-0.5">
+                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 text-xs text-slate-600 pt-0.5">
                   <span className="flex items-center gap-1 font-medium">
                     <MapPin className="h-3.5 w-3.5 text-client" />
                     <span>
@@ -197,7 +197,7 @@ export default function JobberDetailPage() {
                 </div>
 
                 {/* Badges de Confiance */}
-                <div className="pt-2 flex flex-wrap items-center gap-2">
+                <div className="pt-2 flex flex-wrap items-center justify-center sm:justify-start gap-2">
                   <ProxyTrustBadge level={jobber.trustBadge} variant="compact" />
                   {jobber.ifu && (
                     <span className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-mono font-medium text-slate-600">
@@ -219,7 +219,7 @@ export default function JobberDetailPage() {
               <button
                 type="button"
                 onClick={() => setChatOpen(true)}
-                className="flex items-center justify-center gap-2 rounded-xl bg-client px-6 py-3 text-sm font-bold text-white shadow-soft hover:bg-client-hover active:scale-[0.98] transition-all"
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-client px-6 py-3.5 sm:py-3 text-sm font-bold text-white shadow-soft hover:bg-client-hover active:scale-[0.98] transition-all min-h-[46px]"
               >
                 <MessageSquare className="h-4 w-4" />
                 <span>Contacter & Devis</span>
@@ -232,39 +232,39 @@ export default function JobberDetailPage() {
           </div>
 
           {/* Métriques clés */}
-          <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 border-t border-slate-200 pt-6">
-            <div className="rounded-xl bg-slate-50 p-3.5 border border-slate-200 text-center">
-              <span className="block text-xl font-extrabold text-slate-900">
+          <div className="mt-6 sm:mt-8 grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4 border-t border-slate-200 pt-5 sm:pt-6">
+            <div className="rounded-xl bg-slate-50 p-3 sm:p-3.5 border border-slate-200 text-center">
+              <span className="block text-lg sm:text-xl font-extrabold text-slate-900">
                 {jobber.averageRating} ★
               </span>
-              <span className="text-[11px] text-slate-500 font-medium">
+              <span className="text-[10px] sm:text-[11px] text-slate-500 font-medium">
                 {jobber.totalReviews} avis vérifiés
               </span>
             </div>
 
-            <div className="rounded-xl bg-slate-50 p-3.5 border border-slate-200 text-center">
-              <span className="block text-xl font-extrabold text-slate-900">
+            <div className="rounded-xl bg-slate-50 p-3 sm:p-3.5 border border-slate-200 text-center">
+              <span className="block text-lg sm:text-xl font-extrabold text-slate-900">
                 {jobber.completedJobs}
               </span>
-              <span className="text-[11px] text-slate-500 font-medium">
+              <span className="text-[10px] sm:text-[11px] text-slate-500 font-medium">
                 Missions achevées
               </span>
             </div>
 
-            <div className="rounded-xl bg-slate-50 p-3.5 border border-slate-200 text-center">
-              <span className="block text-xl font-extrabold text-slate-900">
+            <div className="rounded-xl bg-slate-50 p-3 sm:p-3.5 border border-slate-200 text-center">
+              <span className="block text-lg sm:text-xl font-extrabold text-slate-900">
                 {jobber.responseRate}%
               </span>
-              <span className="text-[11px] text-slate-500 font-medium">
+              <span className="text-[10px] sm:text-[11px] text-slate-500 font-medium">
                 Taux de réponse
               </span>
             </div>
 
-            <div className="rounded-xl bg-slate-50 p-3.5 border border-slate-200 text-center">
-              <span className="block text-xl font-extrabold text-slate-900">
+            <div className="rounded-xl bg-slate-50 p-3 sm:p-3.5 border border-slate-200 text-center">
+              <span className="block text-lg sm:text-xl font-extrabold text-slate-900">
                 &lt; 2h
               </span>
-              <span className="text-[11px] text-slate-500 font-medium">
+              <span className="text-[10px] sm:text-[11px] text-slate-500 font-medium">
                 Délai moyen
               </span>
             </div>
@@ -272,14 +272,14 @@ export default function JobberDetailPage() {
         </div>
       </div>
 
-      {/* Navigation par Onglets */}
-      <div className="border-b border-slate-200 bg-white sticky top-16 z-20">
+      {/* Navigation par Onglets Mobile-friendly */}
+      <div className="border-b border-slate-200 bg-white sticky top-14 sm:top-16 z-20 overflow-x-auto no-scrollbar">
         <div className="container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-          <div className="flex gap-8 text-sm font-bold">
+          <div className="flex gap-4 sm:gap-8 text-xs sm:text-sm font-bold min-w-max">
             <button
               type="button"
               onClick={() => setActiveTab("about")}
-              className={`py-4 border-b-2 transition-all duration-150 ${
+              className={`py-3.5 sm:py-4 border-b-2 transition-all duration-150 whitespace-nowrap ${
                 activeTab === "about"
                   ? "border-client text-client"
                   : "border-transparent text-slate-500 hover:text-slate-900"
@@ -290,28 +290,28 @@ export default function JobberDetailPage() {
             <button
               type="button"
               onClick={() => setActiveTab("portfolio")}
-              className={`py-4 border-b-2 transition-all duration-150 flex items-center gap-1.5 ${
+              className={`py-3.5 sm:py-4 border-b-2 transition-all duration-150 flex items-center gap-1.5 whitespace-nowrap ${
                 activeTab === "portfolio"
                   ? "border-client text-client"
                   : "border-transparent text-slate-500 hover:text-slate-900"
               }`}
             >
               <span>Portfolio Avant / Après</span>
-              <span className="rounded-full bg-blue-100 text-client px-2 py-0.2 text-[10px] font-bold">
+              <span className="rounded-full bg-blue-100 text-client px-2 py-0.5 text-[10px] font-bold">
                 {jobber.portfolios?.length || 0}
               </span>
             </button>
             <button
               type="button"
               onClick={() => setActiveTab("reviews")}
-              className={`py-4 border-b-2 transition-all duration-150 flex items-center gap-1.5 ${
+              className={`py-3.5 sm:py-4 border-b-2 transition-all duration-150 flex items-center gap-1.5 whitespace-nowrap ${
                 activeTab === "reviews"
                   ? "border-client text-client"
                   : "border-transparent text-slate-500 hover:text-slate-900"
               }`}
             >
               <span>Avis Certifiés</span>
-              <span className="rounded-full bg-slate-100 text-slate-700 px-2 py-0.2 text-[10px] font-bold">
+              <span className="rounded-full bg-slate-100 text-slate-700 px-2 py-0.5 text-[10px] font-bold">
                 {jobber.reviews?.length || 0}
               </span>
             </button>

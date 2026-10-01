@@ -44,11 +44,20 @@ export function BeforeAfterSlider({
     }
   };
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setIsDragging(true);
+    if (e.touches[0]) {
+      handleMove(e.touches[0].clientX);
+    }
+  };
+
   const handleTouchMove = (e: React.TouchEvent) => {
     if (e.touches[0]) {
       handleMove(e.touches[0].clientX);
     }
   };
+
+  const handleTouchEnd = () => setIsDragging(false);
 
   return (
     <div className={cn("overflow-hidden rounded-2xl border border-border bg-white shadow-soft transition-all duration-200 hover:shadow-soft-md", className)}>
@@ -77,8 +86,10 @@ export function BeforeAfterSlider({
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
         onMouseMove={handleMouseMove}
+        onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
-        className="relative h-64 sm:h-80 w-full select-none overflow-hidden cursor-ew-resize bg-slate-900"
+        onTouchEnd={handleTouchEnd}
+        className="relative h-64 sm:h-80 w-full select-none overflow-hidden cursor-ew-resize bg-slate-900 touch-none"
       >
         {/* Image "APRÈS" (en arrière-plan complet) */}
         <img

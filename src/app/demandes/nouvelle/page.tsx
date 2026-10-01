@@ -141,8 +141,17 @@ export default function NouvelleDemandePage() {
         )}
 
         {/* Stepper épuré */}
-        <div className="mb-8">
-          <div className="grid grid-cols-4 gap-2">
+        <div className="mb-6 sm:mb-8">
+          <div className="flex sm:hidden items-center justify-between mb-2">
+            <span className="text-xs font-bold text-client">
+              Étape {currentStep} sur 4
+            </span>
+            <span className="text-xs font-semibold text-slate-700">
+              {steps[currentStep - 1]?.title}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
             {steps.map((s) => (
               <div
                 key={s.num}
@@ -153,7 +162,7 @@ export default function NouvelleDemandePage() {
               >
                 <span
                   className={cn(
-                    "text-[10px] font-bold uppercase tracking-wider",
+                    "text-[10px] font-bold uppercase tracking-wider hidden sm:inline",
                     s.num <= currentStep ? "text-client" : "text-slate-400"
                   )}
                 >
@@ -168,7 +177,7 @@ export default function NouvelleDemandePage() {
         </div>
 
         {/* Form Container */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-soft">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-8 shadow-soft">
           {/* ÉTAPE 1 : CATÉGORIE & MÉTIER */}
           {currentStep === 1 && (
             <div className="space-y-6">
@@ -468,13 +477,13 @@ export default function NouvelleDemandePage() {
               <button
                 type="button"
                 onClick={handlePrev}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+                className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-300 px-4 py-3 sm:py-2.5 text-xs sm:text-sm font-semibold text-slate-700 hover:bg-slate-50 active:scale-[0.98] transition-all min-h-[46px]"
               >
                 <ChevronLeft className="h-4 w-4" />
                 <span>Précédent</span>
               </button>
             ) : (
-              <div />
+              <div className="hidden sm:block" />
             )}
 
             {currentStep < 4 ? (
@@ -482,7 +491,7 @@ export default function NouvelleDemandePage() {
                 type="button"
                 onClick={handleNext}
                 disabled={currentStep === 2 && !formData.title.trim()}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-client px-5 py-2.5 text-xs font-bold text-white shadow-soft hover:bg-client-hover disabled:opacity-50 transition-all"
+                className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 rounded-xl bg-client px-6 py-3 sm:py-2.5 text-xs sm:text-sm font-bold text-white shadow-soft hover:bg-client-hover active:scale-[0.98] disabled:opacity-50 transition-all min-h-[46px]"
               >
                 <span>Continuer</span>
                 <ChevronRight className="h-4 w-4" />
@@ -492,12 +501,12 @@ export default function NouvelleDemandePage() {
                 type="button"
                 onClick={handleSubmit}
                 disabled={submitting}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-6 py-2.5 text-xs font-bold text-white shadow-soft hover:bg-emerald-700 active:scale-[0.98] disabled:opacity-60 transition-all"
+                className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-6 py-3 sm:py-2.5 text-xs sm:text-sm font-bold text-white shadow-soft hover:bg-emerald-700 active:scale-[0.98] disabled:opacity-60 transition-all min-h-[46px]"
               >
                 {submitting ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>Enregistrement dans Neon...</span>
+                    <span>Enregistrement...</span>
                   </>
                 ) : (
                   <>

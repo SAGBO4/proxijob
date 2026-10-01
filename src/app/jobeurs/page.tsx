@@ -162,26 +162,26 @@ function JobeursContent() {
             </div>
 
             {/* Tri & Déclencheur Drawer Mobile */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-between sm:justify-end">
               <button
                 type="button"
                 onClick={() => setMobileFilterOpen(true)}
-                className="lg:hidden inline-flex items-center gap-2 rounded-xl border border-input bg-white px-4 py-2.5 text-xs font-bold text-slate-800 shadow-soft"
+                className="lg:hidden flex-1 sm:flex-none inline-flex items-center justify-center gap-2 rounded-xl border border-input bg-white px-3.5 py-2.5 text-xs font-bold text-slate-800 shadow-soft active:scale-95 min-h-[42px]"
               >
                 <SlidersHorizontal className="h-4 w-4 text-client" />
                 <span>Filtres ({filteredJobbers.length})</span>
               </button>
 
-              <div className="flex items-center gap-2 rounded-xl border border-input bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-soft">
-                <ArrowUpDown className="h-3.5 w-3.5 text-slate-400" />
-                <span className="hidden sm:inline text-slate-500">Trier par :</span>
+              <div className="flex items-center gap-1.5 sm:gap-2 rounded-xl border border-input bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-soft min-h-[42px]">
+                <ArrowUpDown className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                <span className="hidden sm:inline text-slate-500">Trier :</span>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as any)}
-                  className="bg-transparent outline-none font-bold text-slate-900 cursor-pointer"
+                  className="bg-transparent outline-none font-bold text-slate-900 cursor-pointer text-xs"
                 >
-                  <option value="relevance">Pertinence & Missions</option>
-                  <option value="rating">Meilleures notes (★)</option>
+                  <option value="relevance">Pertinence</option>
+                  <option value="rating">Notes (★)</option>
                   <option value="price_asc">Tarif croissant</option>
                 </select>
               </div>
@@ -197,27 +197,28 @@ function JobeursContent() {
           </aside>
 
           {/* Colonne Droite : Résultats */}
-          <main className="lg:col-span-8 space-y-5">
+          <main className="lg:col-span-8 space-y-4 sm:space-y-5">
             {/* Compteur de résultats */}
-            <div className="flex items-center justify-between text-xs font-semibold text-slate-600 bg-white p-3.5 rounded-xl border border-slate-200 shadow-soft">
-              <span>
+            <div className="flex items-center justify-between text-xs font-semibold text-slate-600 bg-white p-3 sm:p-3.5 rounded-xl border border-slate-200 shadow-soft">
+              <span className="truncate pr-2">
                 {loading ? (
                   <span className="flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin text-client" />
-                    Chargement des artisans depuis la base de données...
+                    <Loader2 className="h-4 w-4 animate-spin text-client shrink-0" />
+                    Chargement des artisans...
                   </span>
                 ) : (
                   <>
-                    <strong>{filteredJobbers.length}</strong> artisan{filteredJobbers.length > 1 ? "s" : ""} trouvé{filteredJobbers.length > 1 ? "s" : ""}{" "}
+                    <strong>{filteredJobbers.length}</strong> artisan{filteredJobbers.length > 1 ? "s" : ""}{" "}
                     {filters.commune ? `à ${filters.commune}` : "au Bénin"}
                   </>
                 )}
               </span>
 
               {filters.verifiedOnly && (
-                <span className="inline-flex items-center gap-1 text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md font-semibold">
+                <span className="inline-flex items-center gap-1 text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md font-semibold text-[11px] shrink-0">
                   <ShieldCheck className="h-3.5 w-3.5" />
-                  ProxyTrust uniquement
+                  <span className="hidden sm:inline">ProxyTrust uniquement</span>
+                  <span className="sm:hidden">Vérifiés</span>
                 </span>
               )}
             </div>
@@ -226,9 +227,9 @@ function JobeursContent() {
             {loading ? (
               <div className="space-y-4">
                 {[1, 2, 3].map((n) => (
-                  <div key={n} className="rounded-2xl border border-slate-200 bg-white p-6 animate-pulse">
+                  <div key={n} className="rounded-2xl border border-slate-200 bg-white p-5 animate-pulse">
                     <div className="flex gap-4">
-                      <div className="h-14 w-14 rounded-2xl bg-slate-200" />
+                      <div className="h-14 w-14 rounded-2xl bg-slate-200 shrink-0" />
                       <div className="space-y-2 flex-1">
                         <div className="h-4 bg-slate-200 rounded w-1/3" />
                         <div className="h-3 bg-slate-200 rounded w-1/4" />
@@ -245,7 +246,7 @@ function JobeursContent() {
                 ))}
               </div>
             ) : (
-              <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center shadow-soft">
+              <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 sm:p-12 text-center shadow-soft">
                 <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-client mb-4">
                   <Search className="h-6 w-6" />
                 </div>
@@ -278,33 +279,53 @@ function JobeursContent() {
         </div>
       </div>
 
-      {/* Drawer Mobile pour Filtres */}
+      {/* Bouton Flottant (FAB) Filtres accessible au pouce sur Mobile */}
+      <div className="fixed bottom-20 right-4 z-40 lg:hidden">
+        <button
+          type="button"
+          onClick={() => setMobileFilterOpen(true)}
+          className="flex items-center gap-2 rounded-full bg-slate-900 text-white px-4 py-3 shadow-xl active:scale-95 text-xs font-bold border border-slate-700 backdrop-blur-md"
+          aria-label="Ouvrir les filtres"
+        >
+          <SlidersHorizontal className="h-4 w-4 text-jobber" />
+          <span>Filtres</span>
+          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-client text-[10px] text-white font-extrabold">
+            {filteredJobbers.length}
+          </span>
+        </button>
+      </div>
+
+      {/* Drawer Mobile pour Filtres avec footer sticky */}
       {mobileFilterOpen && (
         <div className="fixed inset-0 z-50 lg:hidden flex justify-end bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="relative w-full max-w-sm h-full bg-white p-5 overflow-y-auto shadow-2xl flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between pb-4 border-b border-border mb-4">
-                <div className="flex items-center gap-2 font-bold text-slate-900">
-                  <SlidersHorizontal className="h-4 w-4 text-client" />
-                  <span>Filtrer les Jobeurs</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setMobileFilterOpen(false)}
-                  className="p-1 rounded-lg text-slate-400 hover:text-slate-800"
-                >
-                  <X className="h-5 w-5" />
-                </button>
+          <div className="relative w-full max-w-sm h-full bg-white flex flex-col shadow-2xl">
+            {/* Header du drawer */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0 bg-white">
+              <div className="flex items-center gap-2 font-bold text-slate-900 text-base">
+                <SlidersHorizontal className="h-5 w-5 text-client" />
+                <span>Filtrer les Jobeurs</span>
               </div>
-
-              <ProximityFilter filters={filters} onFilterChange={setFilters} />
-            </div>
-
-            <div className="pt-4 border-t border-border mt-4">
               <button
                 type="button"
                 onClick={() => setMobileFilterOpen(false)}
-                className="w-full rounded-xl bg-client py-3 text-xs font-bold text-white shadow-soft"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-800 active:scale-95"
+                aria-label="Fermer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Corps défilable */}
+            <div className="flex-1 overflow-y-auto px-5 py-4">
+              <ProximityFilter filters={filters} onFilterChange={setFilters} />
+            </div>
+
+            {/* Footer sticky avec safe area */}
+            <div className="p-4 border-t border-border shrink-0 bg-white pb-[max(1rem,env(safe-area-inset-bottom))]">
+              <button
+                type="button"
+                onClick={() => setMobileFilterOpen(false)}
+                className="w-full rounded-xl bg-client py-3.5 text-sm font-bold text-white shadow-soft active:scale-[0.98] transition-transform min-h-[48px]"
               >
                 Voir les {filteredJobbers.length} résultats
               </button>

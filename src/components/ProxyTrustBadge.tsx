@@ -19,7 +19,7 @@ export function ProxyTrustBadge({
       case "LEVEL_3_EXPERT":
         return {
           label: "Expert Agréé ProxyTrust",
-          shortLabel: "Expert Certifié",
+          shortLabel: "ProxyTrust Expert",
           description: "Diplôme vérifié & Entreprise enregistrée (RCCM / IFU)",
           bgColor: "bg-emerald-50 text-emerald-800 border-emerald-200",
           iconColor: "text-emerald-600",
@@ -28,7 +28,7 @@ export function ProxyTrustBadge({
       case "LEVEL_2_IDENTITY":
         return {
           label: "Identité Vérifiée ANIP/CIP",
-          shortLabel: "Vérifié ANIP / CIP",
+          shortLabel: "ProxyTrust CIP",
           description: "Certificat d'Identification Personnelle (CIP / CNI) vérifié",
           bgColor: "bg-emerald-50 text-emerald-800 border-emerald-200",
           iconColor: "text-emerald-600",
@@ -38,7 +38,7 @@ export function ProxyTrustBadge({
       default:
         return {
           label: "Téléphone Vérifié",
-          shortLabel: "Téléphone Vérifié",
+          shortLabel: "ProxyTrust Tél",
           description: "Numéro de téléphone béninois validé par code SMS OTP",
           bgColor: "bg-blue-50 text-blue-800 border-blue-200",
           iconColor: "text-client",
@@ -93,7 +93,7 @@ export function ProxyTrustBadge({
   return (
     <div
       className={cn(
-        "rounded-2xl border p-5 shadow-soft bg-gradient-to-r from-emerald-50/90 to-teal-50/50 border-emerald-200/80",
+        "rounded-2xl border p-5 shadow-soft bg-emerald-50 border-emerald-200/80",
         className
       )}
     >

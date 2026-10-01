@@ -157,6 +157,11 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/video" className="font-bold text-client hover:underline flex items-center gap-1">
+                  <span>▶ Vidéo Démo Mobile First (/brag)</span>
+                </Link>
+              </li>
+              <li>
                 <Link href="/admin" className="hover:text-client transition-colors flex items-center gap-1 text-slate-500">
                   <span>Portail Modération & Sécurité</span>
                   <ExternalLink className="h-3 w-3" />

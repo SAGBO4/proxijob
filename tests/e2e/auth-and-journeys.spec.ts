@@ -64,9 +64,9 @@ test.describe("PROXIJOB - Audit E2E & Scénarios Réels", () => {
     await expect(passwordInput).toBeVisible();
     await expect(submitBtn).toBeVisible();
 
-    // Saisie des identifiants réels Neon du client de démo
+    // Saisie des identifiants réels Neon du client
     await identifierInput.fill("koffi.mensah@email.bj");
-    await passwordInput.fill("ProxiJob@2026");
+    await passwordInput.fill("Client@ProxiJob2026!");
 
     // Soumission du formulaire
     await submitBtn.click();
@@ -96,9 +96,9 @@ test.describe("PROXIJOB - Audit E2E & Scénarios Réels", () => {
     const passwordInput = page.locator('input[name="password"]');
     const submitBtn = page.locator('button[type="submit"]');
 
-    // Saisie des identifiants réels Neon du jobeur de démo
+    // Saisie des identifiants réels Neon du jobeur
     await identifierInput.fill("sebastien.dossou@email.bj");
-    await passwordInput.fill("ProxiJob@2026");
+    await passwordInput.fill("Jobber@ProxiJob2026!");
 
     // Soumission du formulaire
     await submitBtn.click();

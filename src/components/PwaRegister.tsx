@@ -46,9 +46,10 @@ export function PwaRegister() {
       return;
     }
 
-    // 3. Détection iOS Safari
+    // 3. Détection iOS Safari et Android
     const ua = window.navigator.userAgent.toLowerCase();
     const isIosDevice = /iphone|ipad|ipod/.test(ua);
+    const isAndroidDevice = /android/.test(ua);
     setIsIOS(isIosDevice);
 
     // Vérifier si l'utilisateur a déjà fermé la bannière récemment (stockage session/local)
@@ -59,19 +60,21 @@ export function PwaRegister() {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
       if (!wasDismissed) {
-        // Afficher avec un léger délai pour ne pas agresser au premier millième de seconde
-        setTimeout(() => setShowPrompt(true), 1500);
+        setShowPrompt(true);
       }
     };
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
 
-    // 5. Sur iOS (Safari ne déclenche pas beforeinstallprompt)
-    if (isIosDevice && !wasDismissed) {
+    // 5. Affichage automatique sur mobiles (iOS Safari ou Android) après un court délai
+    if ((isIosDevice || isAndroidDevice) && !wasDismissed) {
       const timer = setTimeout(() => {
         setShowPrompt(true);
-      }, 2500);
-      return () => clearTimeout(timer);
+      }, 500);
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+      };
     }
 
     // 6. Écoute de l'installation réussie
@@ -87,18 +90,21 @@ export function PwaRegister() {
   }, []);
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) return;
-
-    try {
-      await deferredPrompt.prompt();
-      const choice = await deferredPrompt.userChoice;
-      if (choice.outcome === "accepted") {
-        setInstalled(true);
+    if (deferredPrompt) {
+      try {
+        await deferredPrompt.prompt();
+        const choice = await deferredPrompt.userChoice;
+        if (choice.outcome === "accepted") {
+          setInstalled(true);
+        }
+        setDeferredPrompt(null);
+        setShowPrompt(false);
+      } catch (err) {
+        console.error("Erreur lors de l'installation PWA:", err);
       }
-      setDeferredPrompt(null);
+    } else {
+      setInstalled(true);
       setShowPrompt(false);
-    } catch (err) {
-      console.error("Erreur lors de l'installation PWA:", err);
     }
   };
 
@@ -210,7 +216,7 @@ export function PwaRegister() {
               <button
                 type="button"
                 onClick={handleInstallClick}
-                disabled={!deferredPrompt && !installed}
+                disabled={installed}
                 className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 px-3.5 rounded-xl bg-client hover:bg-client-hover text-white text-xs sm:text-sm font-bold shadow-soft active:scale-95 transition-all disabled:opacity-50"
               >
                 {installed ? (

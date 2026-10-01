@@ -568,7 +568,7 @@ async function main() {
   // 2.1 Administrateur
   const adminUser = await prisma.user.upsert({
     where: { email: "admin@proxijob.bj" },
-    update: {},
+    update: { activeRole: Role.ADMIN },
     create: {
       id: "usr_admin_01",
       name: "Admin ProxiJob Bénin",
@@ -579,6 +579,7 @@ async function main() {
       phoneVerified: true,
       password: passwordHash,
       role: Role.ADMIN,
+      activeRole: Role.ADMIN,
       city: "Cotonou",
       quarter: "Haie Vive",
       address: "Immeuble Marina, Boulevard de la Marina",

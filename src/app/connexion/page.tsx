@@ -39,7 +39,9 @@ function LoginContent() {
       }
 
       // Stocker le rôle actif localement pour synchroniser le contexte
-      if (data.user?.activeRole) {
+      if (data.user?.role === "ADMIN" || data.user?.role === "MODERATOR") {
+        localStorage.setItem("proxijob_active_role", "admin");
+      } else if (data.user?.activeRole) {
         localStorage.setItem(
           "proxijob_active_role",
           data.user.activeRole.toLowerCase()

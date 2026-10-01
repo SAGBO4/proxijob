@@ -43,7 +43,15 @@ const fallbackUser: AuthUser = {
 const RoleContext = createContext<RoleContextValue | undefined>(undefined);
 
 export function RoleProvider({ children }: { children: React.ReactNode }) {
-  const [currentRole, setCurrentRole] = useState<RoleType>("client");
+  const [currentRole, setCurrentRole] = useState<RoleType>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("proxijob_active_role") as RoleType;
+      if (saved && (saved === "client" || saved === "jobber" || saved === "admin")) {
+        return saved;
+      }
+    }
+    return "client";
+  });
   const [user, setUser] = useState<AuthUser>(fallbackUser);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [mounted, setMounted] = useState(false);
@@ -73,10 +81,19 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
           // Rôle effectif
           if (data.user.role === "ADMIN" || data.user.role === "MODERATOR") {
             setCurrentRole("admin");
+            if (typeof window !== "undefined") {
+              localStorage.setItem("proxijob_active_role", "admin");
+            }
           } else if (data.user.activeRole === "JOBBER" || data.user.role === "JOBBER") {
             setCurrentRole("jobber");
+            if (typeof window !== "undefined") {
+              localStorage.setItem("proxijob_active_role", "jobber");
+            }
           } else {
             setCurrentRole("client");
+            if (typeof window !== "undefined") {
+              localStorage.setItem("proxijob_active_role", "client");
+            }
           }
           return;
         }

@@ -100,6 +100,7 @@ model User {
   password      String?
   image         String?   // Photo de profil / avatar
   role          Role      @default(CLIENT)
+  activeRole    Role      @default(CLIENT) // Rôle actif courant (bascule Client <-> Jobeur 1-clic sans déconnexion)
   city          String?   // Ex: "Cotonou", "Abomey-Calavi", "Porto-Novo"
   quarter       String?   // Ex: "Haie Vive", "Fidjrossè", "Akpakpa"
   address       String?   // Adresse ou repère de résidence
@@ -119,6 +120,7 @@ model User {
   subscriptions          Subscription[]
 
   @@index([role])
+  @@index([activeRole])
   @@index([city, quarter])
 }
 
@@ -137,6 +139,8 @@ model JobberProfile {
   city                String?         // Ville principale d'intervention
   quarter             String?         // Quartier principal
   landmark            String?         // Repère textuel sans carte (ex: "Face carrefour Club des Rois")
+  latitude            Float?          // Coordonnées barycentriques pour calculs de proximité Haversine
+  longitude           Float?
   serviceZones        String[]        @default([]) // Liste des quartiers et communes desservis
   isAvailable         Boolean         @default(true)
   availabilityDetails String?         // Horaires (ex: "Lun-Sam 08:00 - 18:30")
@@ -331,6 +335,8 @@ model Message {
   contentFiltered String       // Message filtré avec masquage (+229, numéros, emails, wa.me)
   estMasque       Boolean      @default(false) // Indique si un masquage a été appliqué
   attachmentUrl   String?
+  audioUrl        String?      // Support des notes vocales intégrées (Jalon M2 / V2)
+  audioDuration   Int?         // Durée audio en secondes
   readAt          DateTime?
   createdAt       DateTime     @default(now())
 
@@ -473,4 +479,64 @@ model ModerationLog {
   @@index([adminId])
   @@index([targetId, targetType])
   @@index([createdAt])
+}
+
+// =============================================================================
+// TERRITORIAL REFERENCE (BÉNIN) - RSK-02 & UNK-03
+// Référentiel toponymique officiel pour localisation textuelle sans carte Maps
+// =============================================================================
+
+model Department {
+  id        String    @id @default(cuid())
+  name      String    @unique // Ex: "Littoral", "Atlantique", "Ouémé", "Borgou"
+  code      String    @unique // Ex: "LIT", "ATL", "OUE", "BOR"
+  communes  Commune[]
+  createdAt DateTime  @default(now())
+}
+
+model Commune {
+  id              String           @id @default(cuid())
+  departmentId    String
+  department      Department       @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  name            String           // Ex: "Cotonou", "Abomey-Calavi", "Porto-Novo", "Parakou"
+  slug            String           @unique
+  latitude        Float?           // Barycentre pour calculs de distance Haversine backend
+  longitude       Float?
+  arrondissements Arrondissement[]
+  quarters        Quarter[]
+  createdAt       DateTime         @default(now())
+
+  @@index([departmentId])
+  @@index([slug])
+}
+
+model Arrondissement {
+  id        String    @id @default(cuid())
+  communeId String
+  commune   Commune   @relation(fields: [communeId], references: [id], onDelete: Cascade)
+  name      String    // Ex: "12ème Arrondissement", "Godomey", "Akassato"
+  slug      String    @unique
+  quarters  Quarter[]
+  createdAt DateTime  @default(now())
+
+  @@index([communeId])
+  @@index([slug])
+}
+
+model Quarter {
+  id               String          @id @default(cuid())
+  communeId        String
+  commune          Commune         @relation(fields: [communeId], references: [id], onDelete: Cascade)
+  arrondissementId String?
+  arrondissement   Arrondissement? @relation(fields: [arrondissementId], references: [id], onDelete: SetNull)
+  name             String          // Ex: "Haie Vive", "Cadjehoun", "Akpakpa", "Arconville"
+  slug             String          @unique
+  latitude         Float?          // Coordonnées barycentriques pour Haversine
+  longitude        Float?
+  commonLandmarks  String[]        @default([]) // Repères usuels textuels (ex: "Carrefour Club des Rois", "Camp Guézo")
+  createdAt        DateTime        @default(now())
+
+  @@index([communeId])
+  @@index([arrondissementId])
+  @@index([slug])
 }

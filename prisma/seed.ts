@@ -49,6 +49,271 @@ async function main() {
   console.log("🌱 Début du peuplement de la base de données PROXIJOB (Bénin)...");
 
   // =========================================================================
+  // 0. RÉFÉRENTIEL TERRITORIAL BÉNINOIS OFFICIEL (RSK-02 & UNK-03)
+  // Départements, Communes, Arrondissements & Quartiers avec Repères Visuels
+  // =========================================================================
+  console.log("🗺️ Création du référentiel territorial béninois officiel...");
+
+  const territorialData = [
+    {
+      code: "LIT",
+      name: "Littoral",
+      communes: [
+        {
+          name: "Cotonou",
+          slug: "cotonou",
+          latitude: 6.3654,
+          longitude: 2.4183,
+          arrondissements: [
+            {
+              name: "1er Arrondissement",
+              slug: "cotonou-1er",
+              quarters: [
+                { name: "Dandji", slug: "dandji", latitude: 6.3712, longitude: 2.4589, commonLandmarks: ["Carrefour Le Bélier", "Marché Dandji"] },
+                { name: "Donaten", slug: "donaten", latitude: 6.3685, longitude: 2.4632, commonLandmarks: ["Hôtel El Dorado", "Plage Donaten"] },
+                { name: "Finagnon", slug: "finagnon", latitude: 6.3745, longitude: 2.4611, commonLandmarks: ["Carrefour Finagnon", "Collège Finagnon"] },
+              ],
+            },
+            {
+              name: "4ème Arrondissement",
+              slug: "cotonou-4eme",
+              quarters: [
+                { name: "Akpakpa Dodomè", slug: "akpakpa-dodome", latitude: 6.3685, longitude: 2.4502, commonLandmarks: ["Face Église Sacré-Cœur d'Akpakpa", "Ciné Concorde", "Pharmacie de l'Étoile"] },
+                { name: "Enagnon", slug: "enagnon", latitude: 6.3621, longitude: 2.4485, commonLandmarks: ["Place Enagnon", "Marché Enagnon"] },
+              ],
+            },
+            {
+              name: "8ème Arrondissement",
+              slug: "cotonou-8eme",
+              quarters: [
+                { name: "Sainte-Rita", slug: "sainte-rita", latitude: 6.3762, longitude: 2.4089, commonLandmarks: ["Carrefour Sainte-Rita", "Église Sainte-Rita", "Clinique Mahouna"] },
+                { name: "Houéyiho", slug: "houeyiho", latitude: 6.3695, longitude: 2.3912, commonLandmarks: ["Carrefour Houéyiho", "Piste de l'Aéroport"] },
+              ],
+            },
+            {
+              name: "9ème Arrondissement",
+              slug: "cotonou-9eme",
+              quarters: [
+                { name: "Menontin", slug: "menontin", latitude: 6.3812, longitude: 2.3889, commonLandmarks: ["Hôpital de zone Menontin", "Marché Menontin"] },
+                { name: "Zogbo", slug: "zogbo", latitude: 6.3855, longitude: 2.3965, commonLandmarks: ["Carrefour Zogbo", "Marché Zogbo"] },
+              ],
+            },
+            {
+              name: "11ème Arrondissement",
+              slug: "cotonou-11eme",
+              quarters: [
+                { name: "Gbégamey", slug: "gbegamey", latitude: 6.3645, longitude: 2.4185, commonLandmarks: ["Bourse du Travail", "Collège Père Aupiais", "Carrefour Bon Pasteur"] },
+                { name: "Saint-Michel", slug: "saint-michel", latitude: 6.3654, longitude: 2.4271, commonLandmarks: ["Église Saint-Michel", "Face Clinique Boni", "Avenue Steinmetz"] },
+              ],
+            },
+            {
+              name: "12ème Arrondissement",
+              slug: "cotonou-12eme",
+              quarters: [
+                { name: "Cadjèhoun", slug: "cadjehoun", latitude: 6.3615, longitude: 2.4095, commonLandmarks: ["Derrière Collège Père Aupiais", "Ambassade des USA", "Carrefour Cadjèhoun"] },
+                { name: "Haie Vive", slug: "haie-vive", latitude: 6.3533, longitude: 2.4182, commonLandmarks: ["Face Pharmacie Camp Guézo", "Rue des Ambassades", "Place du Souvenir"] },
+                { name: "Cocotiers", slug: "cocotiers", latitude: 6.3575, longitude: 2.4011, commonLandmarks: ["Aéroport Cardinal Bernardin Gantin", "Direction MTN"] },
+              ],
+            },
+            {
+              name: "13ème Arrondissement",
+              slug: "cotonou-13eme",
+              quarters: [
+                { name: "Fidjrossè", slug: "fidjrosse", latitude: 6.3591, longitude: 2.3789, commonLandmarks: ["Carrefour Club des Rois", "Calvaire Fidjrossè", "Plage de Fidjrossè"] },
+                { name: "Agla", slug: "agla", latitude: 6.3785, longitude: 2.3755, commonLandmarks: ["Carrefour Agla Les Pylônes", "Goudron Agla"] },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    {
+      code: "ATL",
+      name: "Atlantique",
+      communes: [
+        {
+          name: "Abomey-Calavi",
+          slug: "abomey-calavi",
+          latitude: 6.4485,
+          longitude: 2.3557,
+          arrondissements: [
+            {
+              name: "Abomey-Calavi Centre",
+              slug: "calavi-centre",
+              quarters: [
+                { name: "Arconville", slug: "arconville", latitude: 6.4485, longitude: 2.3557, commonLandmarks: ["Près Carrefour IITA Calavi", "Face Station JNP", "Calavi Kpota"] },
+                { name: "Calavi Kpota", slug: "calavi-kpota", latitude: 6.4451, longitude: 2.3612, commonLandmarks: ["Marché Calavi Kpota", "Carrefour Kpota"] },
+                { name: "Zogbadjè", slug: "zogbadje", latitude: 6.4385, longitude: 2.3421, commonLandmarks: ["Campus Universitaire UAC", "Entrée Principale UAC"] },
+              ],
+            },
+            {
+              name: "Godomey",
+              slug: "godomey",
+              quarters: [
+                { name: "Godomey-Togoudo", slug: "godomey-togoudo", latitude: 6.4012, longitude: 2.3395, commonLandmarks: ["Échangeur de Godomey", "Carrefour Dépôt"] },
+                { name: "Tankpè", slug: "tankpe", latitude: 6.4255, longitude: 2.3289, commonLandmarks: ["Carrefour Tankpè", "Goudron Tankpè"] },
+              ],
+            },
+            {
+              name: "Akassato",
+              slug: "akassato",
+              quarters: [
+                { name: "Akassato Centre", slug: "akassato-centre", latitude: 6.5412, longitude: 2.3689, commonLandmarks: ["Carrefour Akassato", "Péage route de Parakou"] },
+              ],
+            },
+          ],
+        },
+        {
+          name: "Ouidah",
+          slug: "ouidah",
+          latitude: 6.3631,
+          longitude: 2.0851,
+          arrondissements: [
+            {
+              name: "Ouidah 1",
+              slug: "ouidah-1",
+              quarters: [
+                { name: "Centre Historique", slug: "ouidah-centre", latitude: 6.3631, longitude: 2.0851, commonLandmarks: ["Temple des Pythons", "Fort Portugais"] },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    {
+      code: "OUE",
+      name: "Ouémé",
+      communes: [
+        {
+          name: "Porto-Novo",
+          slug: "porto-novo",
+          latitude: 6.4969,
+          longitude: 2.6289,
+          arrondissements: [
+            {
+              name: "3ème Arrondissement",
+              slug: "porto-novo-3eme",
+              quarters: [
+                { name: "Avakpa", slug: "avakpa", latitude: 6.4912, longitude: 2.6212, commonLandmarks: ["Carrefour Cinquantenaire", "Stade Charles de Gaulle"] },
+                { name: "Tokpota", slug: "tokpota", latitude: 6.5123, longitude: 2.6315, commonLandmarks: ["Carrefour Tokpota", "Lycée Béhanzin"] },
+              ],
+            },
+            {
+              name: "4ème Arrondissement",
+              slug: "porto-novo-4eme",
+              quarters: [
+                { name: "Ouando", slug: "ouando", latitude: 6.5215, longitude: 2.6189, commonLandmarks: ["Grand Marché de Ouando", "Carrefour Ouando"] },
+              ],
+            },
+          ],
+        },
+        {
+          name: "Sèmè-Kpodji",
+          slug: "seme-kpodji",
+          latitude: 6.3761,
+          longitude: 2.6181,
+          arrondissements: [
+            {
+              name: "Ekpè",
+              slug: "ekpe",
+              quarters: [
+                { name: "Ekpè Centre", slug: "ekpe-centre", latitude: 6.3761, longitude: 2.5812, commonLandmarks: ["Péage d'Ekpè", "PK 10"] },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    {
+      code: "BOR",
+      name: "Borgou",
+      communes: [
+        {
+          name: "Parakou",
+          slug: "parakou",
+          latitude: 9.3372,
+          longitude: 2.6303,
+          arrondissements: [
+            {
+              name: "1er Arrondissement",
+              slug: "parakou-1er",
+              quarters: [
+                { name: "Albarika", slug: "albarika", latitude: 9.3456, longitude: 2.6212, commonLandmarks: ["Campus Universitaire UP", "Carrefour Hubert Maga"] },
+                { name: "Titirou", slug: "titirou", latitude: 9.3512, longitude: 2.6385, commonLandmarks: ["Place Tabera", "Hôpital Chinois"] },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ];
+
+  for (const dept of territorialData) {
+    const createdDept = await prisma.department.upsert({
+      where: { code: dept.code },
+      update: { name: dept.name },
+      create: { name: dept.name, code: dept.code },
+    });
+
+    for (const com of dept.communes) {
+      const createdCommune = await prisma.commune.upsert({
+        where: { slug: com.slug },
+        update: {
+          name: com.name,
+          departmentId: createdDept.id,
+          latitude: com.latitude,
+          longitude: com.longitude,
+        },
+        create: {
+          name: com.name,
+          slug: com.slug,
+          departmentId: createdDept.id,
+          latitude: com.latitude,
+          longitude: com.longitude,
+        },
+      });
+
+      for (const arr of com.arrondissements) {
+        const createdArr = await prisma.arrondissement.upsert({
+          where: { slug: arr.slug },
+          update: {
+            name: arr.name,
+            communeId: createdCommune.id,
+          },
+          create: {
+            name: arr.name,
+            slug: arr.slug,
+            communeId: createdCommune.id,
+          },
+        });
+
+        for (const q of arr.quarters) {
+          await prisma.quarter.upsert({
+            where: { slug: q.slug },
+            update: {
+              name: q.name,
+              communeId: createdCommune.id,
+              arrondissementId: createdArr.id,
+              latitude: q.latitude,
+              longitude: q.longitude,
+              commonLandmarks: q.commonLandmarks,
+            },
+            create: {
+              name: q.name,
+              slug: q.slug,
+              communeId: createdCommune.id,
+              arrondissementId: createdArr.id,
+              latitude: q.latitude,
+              longitude: q.longitude,
+              commonLandmarks: q.commonLandmarks,
+            },
+          });
+        }
+      }
+    }
+  }
+
+  // =========================================================================
   // 1. TAXONOMIE COMPLÈTE : CATÉGORIES & SOUS-CATÉGORIES MÉTIERS
   // Conforme à la mindmap § 3.2 du Cahier des Charges Fonctionnel
   // =========================================================================
@@ -391,6 +656,8 @@ async function main() {
         city: "Cotonou",
         quarter: "Akpakpa",
         landmark: "Face Église Sacré-Cœur d'Akpakpa",
+        latitude: 6.3685,
+        longitude: 2.4502,
         serviceZones: ["Akpakpa", "Haie Vive", "Cadjehoun", "Saint-Michel", "Plakodji"],
         isAvailable: true,
         availabilityDetails: "Lun-Sam : 07h00 - 19h00 (Interventions d'urgence 24/7)",
@@ -431,6 +698,8 @@ async function main() {
         city: "Cotonou",
         quarter: "Fidjrossè",
         landmark: "Carrefour Club des Rois",
+        latitude: 6.3591,
+        longitude: 2.3789,
         serviceZones: ["Fidjrossè", "Haie Vive", "Agla", "Cocotiers", "Calavi"],
         isAvailable: true,
         availabilityDetails: "Lun-Ven : 08h00 - 18h00 | Sam : 08h00 - 14h00",
@@ -469,6 +738,8 @@ async function main() {
         city: "Cotonou",
         quarter: "Cadjehoun",
         landmark: "Derrière le Collège Père Aupiais",
+        latitude: 6.3615,
+        longitude: 2.4095,
         serviceZones: ["Cadjehoun", "Haie Vive", "Gbégamey", "Kouhounou", "Zogbo"],
         isAvailable: true,
         availabilityDetails: "Mar-Sam : 09h00 - 19h00 sur rendez-vous",
@@ -509,6 +780,8 @@ async function main() {
         city: "Abomey-Calavi",
         quarter: "Arconville",
         landmark: "Près du Carrefour IITA Calavi",
+        latitude: 6.4485,
+        longitude: 2.3557,
         serviceZones: ["Arconville", "Calavi Kpota", "Godomey", "Togoudo", "Akassato"],
         isAvailable: true,
         availabilityDetails: "Lun-Sam : 07h30 - 18h30",
@@ -547,6 +820,8 @@ async function main() {
         city: "Cotonou",
         quarter: "Saint-Michel",
         landmark: "Face Clinique Boni Saint-Michel",
+        latitude: 6.3654,
+        longitude: 2.4271,
         serviceZones: ["Saint-Michel", "Gbégamey", "Marjorelle", "Haie Vive", "Akpakpa"],
         isAvailable: true,
         availabilityDetails: "Disponible 7j/7 pour les urgences froid",
@@ -555,6 +830,47 @@ async function main() {
         trustBadge: TrustBadgeLevel.LEVEL_3_EXPERT,
         completedJobs: 53,
         responseRate: 99.0,
+        isVerified: true,
+      },
+    },
+    {
+      // 2.4 Profil Hybride de Référence (ACC-01 : bascule 1-clic Client <-> Jobeur)
+      user: {
+        id: "usr_hybrid_bio",
+        name: "Bio Bio Gounou",
+        firstName: "Bio",
+        lastName: "Gounou",
+        email: "bio.gounou@proxijob.bj",
+        phone: "+22997112244",
+        phoneVerified: true,
+        password: passwordHash,
+        role: Role.HYBRID,
+        activeRole: Role.CLIENT,
+        city: "Cotonou",
+        quarter: "Fidjrossè",
+        address: "Fidjrossè Calvaire, Rue 120",
+        image: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400",
+      },
+      profile: {
+        id: "jobber_prof_bio",
+        headline: "Technicien Réseaux & Maintenance Informatique à Domicile",
+        bio: "Profil hybride actif : utilisateur de ProxiJob pour mes besoins de maison et prestataire en informatique/réseau. Dépannage Wi-Fi, câblage et réinstallation PC.",
+        skills: ["Maintenance informatique", "Câblage réseau", "Configuration Wi-Fi", "Diagnostic"],
+        legalStatus: LegalStatus.PARTICULIER,
+        hourlyRate: 8000,
+        city: "Cotonou",
+        quarter: "Fidjrossè",
+        landmark: "Face Pharmacie du Calvaire Fidjrossè",
+        latitude: 6.3595,
+        longitude: 2.3792,
+        serviceZones: ["Fidjrossè", "Haie Vive", "Agla", "Cadjehoun"],
+        isAvailable: true,
+        availabilityDetails: "Lun-Sam : 08h00 - 18h00",
+        averageRating: 4.88,
+        totalReviews: 9,
+        trustBadge: TrustBadgeLevel.LEVEL_1_PHONE,
+        completedJobs: 14,
+        responseRate: 97.0,
         isVerified: true,
       },
     },

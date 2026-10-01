@@ -60,15 +60,17 @@ export default function ClientDashboardPage() {
 
         if (reqRes.ok) {
           const reqData = await reqRes.json();
-          if (Array.isArray(reqData)) {
-            setRequests(reqData);
+          const list = Array.isArray(reqData) ? reqData : (reqData.data || []);
+          if (Array.isArray(list)) {
+            setRequests(list);
           }
         }
 
         if (jobberRes.ok) {
           const jobbers = await jobberRes.json();
-          if (Array.isArray(jobbers)) {
-            setFavoriteJobbers(jobbers.slice(0, 2));
+          const list = Array.isArray(jobbers) ? jobbers : (jobbers.data || []);
+          if (Array.isArray(list)) {
+            setFavoriteJobbers(list.slice(0, 2));
           }
         }
       } catch (err) {

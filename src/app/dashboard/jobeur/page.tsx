@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Wrench,
@@ -16,13 +16,9 @@ import {
   ArrowRight,
   Upload,
   MessageSquare,
+  RefreshCw,
 } from "lucide-react";
-import {
-  MOCK_JOBBERS,
-  MOCK_REQUESTS,
-  formatFCFA,
-  ServiceRequest,
-} from "@/lib/mock-data";
+import { formatFCFA, ServiceRequest } from "@/lib/mock-data";
 import { SwitchRoleButton } from "@/components/SwitchRoleButton";
 import { ProxyTrustBadge } from "@/components/ProxyTrustBadge";
 import { ServiceRequestCard } from "@/components/ServiceRequestCard";
@@ -32,36 +28,61 @@ import { useRole } from "@/context/RoleContext";
 export default function JobberDashboardPage() {
   const { user } = useRole();
 
-  // On prend le profil de Brice Hounnou ou Sébastien Dossou comme référence
-  const jobber = MOCK_JOBBERS[0];
+  const [loading, setLoading] = useState(true);
+  const [opportunities, setOpportunities] = useState<ServiceRequest[]>([]);
+  const [jobberInfo, setJobberInfo] = useState({
+    name: user?.name || "Artisan Prestataire",
+    trade: "Plomberie & Sanitaire",
+    quarter: user?.quarter || "Akpakpa",
+    city: user?.city || "Cotonou",
+    credits: 25,
+    isBoosted: true,
+    viewsThisWeek: 48,
+    proposalsSent: 6,
+    trustBadgeLevel: "CERTIFIED",
+  });
 
-  // Opportunités ouvertes
-  const nearbyOpportunities = MOCK_REQUESTS.filter((r) => r.status === "OPEN");
+  useEffect(() => {
+    async function loadData() {
+      try {
+        setLoading(true);
+        const [reqRes, jobberRes] = await Promise.all([
+          fetch("/api/demandes"),
+          fetch("/api/jobeurs"),
+        ]);
 
-  // Devis envoyés factices
-  const [proposals, setProposals] = useState([
-    {
-      id: "prop_1",
-      requestTitle: "Fuite importante sous évier cuisine (Haie Vive)",
-      amount: 18500,
-      status: "ACCEPTED",
-      date: "28/09/2026",
-      clientName: "Koffi Mensah",
-      clientPhone: "+229 96 11 22 33", // Unlocked !
-    },
-    {
-      id: "prop_2",
-      requestTitle: "Installation inverseur automatique groupe électrogène",
-      amount: 42000,
-      status: "PENDING",
-      date: "01/10/2026",
-      clientName: "Koffi Mensah",
-      clientPhone: "[Masqué avant accord]",
-    },
-  ]);
+        if (reqRes.ok) {
+          const reqData = await reqRes.json();
+          if (Array.isArray(reqData)) {
+            setOpportunities(reqData.filter((r) => r.status === "OPEN"));
+          }
+        }
+
+        if (jobberRes.ok) {
+          const jobbers = await jobberRes.json();
+          if (Array.isArray(jobbers) && jobbers.length > 0) {
+            const first = jobbers[0];
+            setJobberInfo((prev) => ({
+              ...prev,
+              name: user?.name || first.name,
+              trade: first.trade,
+              quarter: first.quarter || prev.quarter,
+              city: first.city || prev.city,
+            }));
+          }
+        }
+      } catch (err) {
+        console.error("Erreur chargement dashboard jobeur:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadData();
+  }, [user]);
 
   return (
-    <div className="min-h-screen bg-slate-50/50 py-8">
+    <div className="min-h-screen bg-slate-50/50 py-8 pb-24">
       <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-8">
         {/* En-tête avec SwitchRoleButton */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -73,7 +94,7 @@ export default function JobberDashboardPage() {
               Tableau de bord Prestataire
             </h1>
             <p className="text-xs sm:text-sm text-slate-600">
-              {jobber.name} • {jobber.trade} ({jobber.quarter}, {jobber.city})
+              {jobberInfo.name} • {jobberInfo.trade} ({jobberInfo.quarter}, {jobberInfo.city})
             </p>
           </div>
 
@@ -101,14 +122,14 @@ export default function JobberDashboardPage() {
             </div>
             <div className="flex items-baseline gap-2">
               <span className="text-2xl sm:text-3xl font-extrabold text-slate-900">
-                {jobber.credits}
+                {jobberInfo.credits}
               </span>
               <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">
                 Actif
               </span>
             </div>
             <p className="text-[11px] text-slate-500 pt-1">
-              Permet de répondre à 25 demandes d'interventions supplémentaires.
+              Permet de répondre à de nouvelles demandes d'interventions locales.
             </p>
           </div>
 
@@ -119,167 +140,118 @@ export default function JobberDashboardPage() {
               <Zap className="h-4 w-4 text-amber-500" />
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-lg sm:text-xl font-extrabold text-amber-900">
-                Pack 7 jours
+              <span className="text-sm font-bold text-amber-800 bg-amber-50 px-2.5 py-1 rounded-xl">
+                Actif (7 jours restants)
               </span>
             </div>
             <p className="text-[11px] text-slate-500 pt-1">
-              Profil mis en avant dans les quartiers prioritaires ({jobber.serviceZones.slice(0, 2).join(", ")}).
+              Votre profil apparaît prioritairement dans les recherches par quartier.
             </p>
           </div>
 
-          {/* Taux de Réponse */}
+          {/* Vues du profil */}
           <div className="rounded-2xl border border-border bg-white p-5 shadow-soft space-y-1">
             <div className="flex items-center justify-between text-slate-500 text-xs">
-              <span className="font-semibold">Réactivité & Réponse</span>
-              <TrendingUp className="h-4 w-4 text-emerald-600" />
+              <span className="font-semibold">Consultations Profil</span>
+              <Eye className="h-4 w-4 text-client" />
             </div>
             <div className="flex items-baseline gap-2">
               <span className="text-2xl sm:text-3xl font-extrabold text-slate-900">
-                {jobber.responseRate}%
+                {jobberInfo.viewsThisWeek}
               </span>
-              <span className="text-xs text-slate-500 font-medium">{jobber.responseTime}</span>
+              <span className="text-xs font-semibold text-emerald-600 flex items-center gap-0.5">
+                <TrendingUp className="h-3 w-3" /> +18%
+              </span>
             </div>
             <p className="text-[11px] text-slate-500 pt-1">
-              Badge Réactif attribué sur les fiches de recherche.
+              Clients ayant consulté vos avis et votre comparateur Avant/Après.
             </p>
           </div>
 
-          {/* ProxyTrust Badge Status */}
-          <div className="rounded-2xl border border-border bg-white p-5 shadow-soft space-y-1">
+          {/* Badge de confiance */}
+          <div className="rounded-2xl border border-border bg-white p-5 shadow-soft space-y-2">
             <div className="flex items-center justify-between text-slate-500 text-xs">
-              <span className="font-semibold">Certification Officielle</span>
+              <span className="font-semibold">Certification Régalienne</span>
               <ShieldCheck className="h-4 w-4 text-emerald-600" />
             </div>
             <div>
-              <ProxyTrustBadge level={jobber.trustBadge} variant="compact" />
+              <ProxyTrustBadge level="LEVEL_3_EXPERT" />
             </div>
-            <p className="text-[11px] text-slate-500 pt-1">
-              Identité ANIP/CIP validée par nos modérateurs.
+            <p className="text-[11px] text-slate-500">
+              Pièce CIP & diplôme validés par l'administration ProxiJob.
             </p>
           </div>
         </div>
 
-        {/* 1. OPPORTUNITÉS LOCALES À PROXIMITÉ */}
+        {/* Chantiers Réels Disponibles */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-lg font-bold text-slate-900">
-                Opportunités locales à proximité (Grand Cotonou)
+                Chantiers Ouverts Récents (Neon DB)
               </h2>
               <p className="text-xs text-slate-500">
-                Demandes publiées récemment dans vos zones d'intervention.
+                Opportunités de prestations publiées par les clients locaux
               </p>
             </div>
             <Link
               href="/demandes"
-              className="text-xs font-semibold text-client hover:underline"
+              className="text-xs font-bold text-client hover:underline flex items-center gap-1"
             >
-              Voir toutes les demandes
+              <span>Voir toute la bourse</span>
+              <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {nearbyOpportunities.map((req) => (
-              <ServiceRequestCard key={req.id} request={req} />
-            ))}
-          </div>
-        </div>
-
-        {/* 2. SUIVI DES DEVIS ENVOYÉS */}
-        <div className="space-y-4">
-          <h2 className="text-lg font-bold text-slate-900">
-            Mes Devis & Propositions Transmises ({proposals.length})
-          </h2>
-
-          <div className="rounded-2xl border border-border bg-white shadow-soft overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 text-slate-600 uppercase font-semibold border-b border-border">
-                  <tr>
-                    <th className="p-4">Demande Client</th>
-                    <th className="p-4">Montant Proposé</th>
-                    <th className="p-4">Statut</th>
-                    <th className="p-4">Contact Client</th>
-                    <th className="p-4">Date</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {proposals.map((prop) => (
-                    <tr key={prop.id} className="hover:bg-slate-50/60 transition-colors">
-                      <td className="p-4 font-bold text-slate-900">
-                        {prop.requestTitle}
-                      </td>
-                      <td className="p-4 font-extrabold text-slate-900">
-                        {formatFCFA(prop.amount)}
-                      </td>
-                      <td className="p-4">
-                        {prop.status === "ACCEPTED" ? (
-                          <span className="inline-flex items-center gap-1 rounded bg-emerald-100 text-emerald-800 px-2 py-0.5 font-bold">
-                            <CheckCircle2 className="h-3 w-3" />
-                            <span>Accepté</span>
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 rounded bg-amber-100 text-amber-900 px-2 py-0.5 font-bold">
-                            <Clock className="h-3 w-3" />
-                            <span>En attente</span>
-                          </span>
-                        )}
-                      </td>
-                      <td className="p-4">
-                        {prop.status === "ACCEPTED" ? (
-                          <span className="font-semibold text-emerald-700">
-                            📞 {prop.clientPhone}
-                          </span>
-                        ) : (
-                          <span className="text-slate-400 italic">
-                            {prop.clientPhone}
-                          </span>
-                        )}
-                      </td>
-                      <td className="p-4 text-slate-500">
-                        {prop.date}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          {loading ? (
+            <div className="p-8 text-center bg-white rounded-2xl border border-border text-slate-500 text-xs">
+              <RefreshCw className="h-5 w-5 animate-spin mx-auto mb-2 text-client" />
+              <span>Chargement des chantiers réels...</span>
             </div>
-          </div>
+          ) : opportunities.length === 0 ? (
+            <div className="p-8 text-center bg-white rounded-2xl border border-border text-slate-500 text-xs">
+              Aucun chantier ouvert pour le moment.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {opportunities.slice(0, 3).map((req) => (
+                <ServiceRequestCard key={req.id} request={req} />
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* 3. MON PORTFOLIO AVANT / APRÈS */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
+        {/* Section Portfolio Avant / Après */}
+        <div className="rounded-2xl border border-border bg-white p-6 shadow-soft space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
               <h2 className="text-lg font-bold text-slate-900">
-                Mon Portfolio Avant / Après (Chantiers Témoins)
+                Vos Réalisations "Avant / Après"
               </h2>
               <p className="text-xs text-slate-500">
-                Vos réalisations sont inspectables par les clients via notre slider interactif.
+                Valorisez la qualité de vos finitions pour rassurer les clients de Cotonou et Calavi.
               </p>
             </div>
-            <button
-              type="button"
-              onClick={() => alert("Simulation d'ajout de nouvelle réalisation Avant/Après")}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-input bg-white px-3.5 py-2 text-xs font-bold text-slate-800 shadow-soft hover:bg-slate-50"
-            >
-              <Upload className="h-3.5 w-3.5 text-client" />
-              <span>Ajouter une réalisation</span>
-            </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {jobber.portfolio.map((item) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+            <div>
               <BeforeAfterSlider
-                key={item.id}
-                title={item.title}
-                description={item.description}
-                avantUrl={item.avantUrl}
-                apresUrl={item.apresUrl}
-                date={item.date}
+                title="Rénovation plomberie sanitaire (Haie Vive)"
+                avantUrl="https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=800"
+                apresUrl="https://images.unsplash.com/photo-1585704032915-c3400ca199e7?w=800"
+                description="Remplacement tuyauterie et raccordement aux normes"
               />
-            ))}
+            </div>
+
+            <div>
+              <BeforeAfterSlider
+                title="Installation tableau électrique 380V (Fidjrossè)"
+                avantUrl="https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=800"
+                apresUrl="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800"
+                description="Mise aux normes sécurisée et disjoncteur différentiel"
+              />
+            </div>
           </div>
         </div>
       </div>

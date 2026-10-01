@@ -49,8 +49,8 @@ export function MobileNav() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t border-border bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 shadow-[0_-4px_16px_rgba(15,23,42,0.06)] pb-safe">
-      <div className="flex h-16 items-center justify-around px-2">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t border-border bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 shadow-[0_-4px_16px_rgba(15,23,42,0.06)] pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+      <div className="flex h-16 items-center justify-around px-1 sm:px-2">
         {navItems.map((item) => {
           const Icon = item.icon;
 
@@ -59,7 +59,7 @@ export function MobileNav() {
               <Link
                 key={item.label}
                 href={item.href}
-                className="flex flex-col items-center justify-center -mt-5 group"
+                className="flex flex-col items-center justify-center -mt-5 group min-h-[48px] min-w-[48px] select-none"
                 aria-label={item.label}
               >
                 <div
@@ -89,14 +89,14 @@ export function MobileNav() {
               key={item.label}
               href={item.href}
               className={cn(
-                "flex flex-1 flex-col items-center justify-center py-1 transition-colors duration-150",
+                "flex flex-1 flex-col items-center justify-center min-h-[48px] py-1 transition-all duration-150 select-none active:scale-95",
                 item.isActive ? "text-client" : "text-slate-500 hover:text-slate-900"
               )}
             >
               <Icon className={cn("h-5 w-5", item.isActive ? "stroke-[2.5]" : "stroke-[1.8]")} />
               <span
                 className={cn(
-                  "mt-1 text-[10px]",
+                  "mt-1 text-[10px] leading-tight",
                   item.isActive ? "font-bold text-client" : "font-medium"
                 )}
               >

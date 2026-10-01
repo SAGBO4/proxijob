@@ -88,7 +88,7 @@ export function SwitchRoleButton({ className, variant = "header" }: SwitchRoleBu
       onClick={toggleRole}
       title="Bascule instantanée 1-clic de rôle (Client 🔄 Jobeur)"
       className={cn(
-        "group relative inline-flex items-center gap-2 rounded-xl border px-3 py-1.5 text-xs font-semibold transition-all duration-200 active:scale-95 shadow-soft",
+        "group relative inline-flex items-center gap-1.5 sm:gap-2 rounded-xl border px-2 sm:px-3 py-1.5 text-xs font-semibold transition-all duration-200 active:scale-95 shadow-soft shrink-0",
         isClient
           ? "border-blue-200 bg-blue-50/80 text-client hover:bg-blue-100 hover:border-client"
           : "border-amber-300 bg-amber-100/90 text-amber-900 hover:bg-amber-200 hover:border-amber-500",
@@ -97,21 +97,21 @@ export function SwitchRoleButton({ className, variant = "header" }: SwitchRoleBu
     >
       <span
         className={cn(
-          "flex h-5 w-5 items-center justify-center rounded-lg text-white shadow-soft transition-transform duration-200 group-hover:rotate-180",
+          "flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center rounded-lg text-white shadow-soft transition-transform duration-200 group-hover:rotate-180 shrink-0",
           isClient ? "bg-client" : "bg-jobber text-slate-900"
         )}
       >
-        <ArrowLeftRight className="h-3 w-3" />
+        <ArrowLeftRight className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
       </span>
 
-      <span className="hidden sm:inline font-medium text-slate-500 text-[11px]">Rôle :</span>
-      <span className="font-bold">
+      <span className="hidden md:inline font-medium text-slate-500 text-[11px]">Rôle :</span>
+      <span className="font-bold text-[11px] sm:text-xs">
         {isClient ? "Client" : "Jobeur"}
       </span>
 
       <span
         className={cn(
-          "h-2 w-2 rounded-full animate-pulse",
+          "h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full animate-pulse shrink-0",
           isClient ? "bg-client" : "bg-jobber"
         )}
       />

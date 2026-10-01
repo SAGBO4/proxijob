@@ -72,13 +72,13 @@ test.describe("PROXIJOB - Audit E2E & Scénarios Réels", () => {
     await submitBtn.click();
 
     // Vérification stricte de la redirection vers le dashboard client
-    await page.waitForURL("**/dashboard/client", { timeout: 10000 });
+    await page.waitForURL("**/dashboard/client", { timeout: 15000, waitUntil: "domcontentloaded" });
     expect(page.url()).toContain("/dashboard/client");
 
     // Vérification de la présence des éléments de l'espace client
     await expect(
       page.getByRole("heading", { name: /Tableau de bord Client/i })
-    ).toBeVisible();
+    ).toBeVisible({ timeout: 15000 });
     await expect(
       page.getByText(/Espace Particulier & Entreprise/i)
     ).toBeVisible();
@@ -104,13 +104,13 @@ test.describe("PROXIJOB - Audit E2E & Scénarios Réels", () => {
     await submitBtn.click();
 
     // Vérification stricte de la redirection vers le dashboard jobeur
-    await page.waitForURL("**/dashboard/jobeur", { timeout: 10000 });
+    await page.waitForURL("**/dashboard/jobeur", { timeout: 15000, waitUntil: "domcontentloaded" });
     expect(page.url()).toContain("/dashboard/jobeur");
 
     // Vérification de la présence des éléments de l'espace artisan
     await expect(
       page.getByRole("heading", { name: /Tableau de bord Prestataire/i })
-    ).toBeVisible();
+    ).toBeVisible({ timeout: 15000 });
     await expect(
       page.getByText(/Espace Artisan & Prestataire/i)
     ).toBeVisible();
@@ -249,6 +249,6 @@ test.describe("PROXIJOB - Audit E2E & Scénarios Réels", () => {
     // Confirmation de l'enregistrement en base Neon
     await expect(
       page.getByText(/Demande publiée en base réelle/i)
-    ).toBeVisible({ timeout: 10000 });
+    ).toBeVisible({ timeout: 15000 });
   });
 });

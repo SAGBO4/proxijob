@@ -1,5 +1,6 @@
 // Prisma schema for PROXIJOB
 // Configured for Neon PostgreSQL with Connection Pooling and Direct URL
+// Compliant with TDR & Cahier des Charges Fonctionnel PROXIJOB Bénin
 
 generator client {
   provider = "prisma-client-js"
@@ -11,67 +12,531 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+// =============================================================================
+// ENUMS
+// =============================================================================
+
 enum Role {
   CLIENT
   JOBBER
+  HYBRID
   ADMIN
+  MODERATOR
+}
+
+enum LegalStatus {
+  PARTICULIER
+  ENTREPRISE
 }
 
 enum RequestStatus {
-  PENDING
-  ACCEPTED
+  OPEN
   IN_PROGRESS
   COMPLETED
+  DISPUTED
+  REOPENED
   CANCELLED
 }
+
+enum ProposalStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum TrustBadgeLevel {
+  NONE
+  LEVEL_1_PHONE
+  LEVEL_2_IDENTITY
+  LEVEL_3_EXPERT
+}
+
+enum VerificationType {
+  CIP
+  CNI
+  PASSEPORT
+  DIPLOME
+  RCCM
+  IFU
+}
+
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum CreditTransactionType {
+  WELCOME_BONUS
+  PACK_PURCHASE
+  SERVICE_PUBLICATION
+  SERVICE_RENEWAL
+  ADMIN_GRANT
+}
+
+enum ModerationAction {
+  SUSPEND_USER
+  BAN_USER
+  APPROVE_VERIFICATION
+  REJECT_VERIFICATION
+  HIDE_PORTFOLIO
+  RESOLVE_DISPUTE
+  WARN_USER
+}
+
+// =============================================================================
+// USER & PROFILES
+// =============================================================================
 
 model User {
   id            String    @id @default(cuid())
   name          String?
+  firstName     String?
+  lastName      String?
   email         String?   @unique
   emailVerified DateTime?
-  phone         String?   @unique
+  phone         String?   @unique // Format béninois (+229...)
+  phoneVerified Boolean   @default(false)
   password      String?
-  image         String?
+  image         String?   // Photo de profil / avatar
   role          Role      @default(CLIENT)
-  city          String?
-  quarter       String?
+  activeRole    Role      @default(CLIENT) // Rôle actif courant (bascule Client <-> Jobeur 1-clic sans déconnexion)
+  city          String?   // Ex: "Cotonou", "Abomey-Calavi", "Porto-Novo"
+  quarter       String?   // Ex: "Haie Vive", "Fidjrossè", "Akpakpa"
+  address       String?   // Adresse ou repère de résidence
+  isActive      Boolean   @default(true)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  jobberProfile JobberProfile?
-  requests      ServiceRequest[] @relation("ClientRequests")
+  // Relations
+  jobberProfile          JobberProfile?
+  requests               ServiceRequest[]        @relation("ClientRequests")
+  sentMessages           Message[]               @relation("SentMessages")
+  reviewsGiven           Review[]                @relation("AuthorReviews")
+  favorites              FavoriteJobber[]        @relation("UserFavorites")
+  moderationLogsCreated  ModerationLog[]         @relation("AdminModerator")
+  moderationLogsReceived ModerationLog[]         @relation("ModeratedUser")
+  creditAccount          CreditAccount?
+  subscriptions          Subscription[]
+
+  @@index([role])
+  @@index([activeRole])
+  @@index([city, quarter])
 }
 
 model JobberProfile {
-  id             String   @id @default(cuid())
-  userId         String   @unique
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  headline       String?
-  bio            String?
-  category       String
-  subcategories  String[] @default([])
-  hourlyRate     Float?
-  rating         Float    @default(5.0)
-  completedJobs  Int      @default(0)
-  isVerified     Boolean  @default(false)
-  isAvailable    Boolean  @default(true)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id                  String          @id @default(cuid())
+  userId              String          @unique
+  user                User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  headline            String?         // Titre professionnel (ex: "Plombier Sanitaire & Climatisation")
+  bio                 String?         // Biographie et présentation détaillée
+  skills              String[]        @default([]) // Liste des compétences et mots-clés
+  legalStatus         LegalStatus     @default(PARTICULIER)
+  companyName         String?         // Raison sociale si entreprise
+  ifu                 String?         // Numéro IFU (Bénin)
+  rccm                String?         // Numéro RCCM (Bénin)
+  hourlyRate          Float?          // Tarif indicatif horaire / prestation de base en FCFA
+  city                String?         // Ville principale d'intervention
+  quarter             String?         // Quartier principal
+  landmark            String?         // Repère textuel sans carte (ex: "Face carrefour Club des Rois")
+  latitude            Float?          // Coordonnées barycentriques pour calculs de proximité Haversine
+  longitude           Float?
+  serviceZones        String[]        @default([]) // Liste des quartiers et communes desservis
+  isAvailable         Boolean         @default(true)
+  availabilityDetails String?         // Horaires (ex: "Lun-Sam 08:00 - 18:30")
+  averageRating       Float           @default(5.0)
+  totalReviews        Int             @default(0)
+  trustBadge          TrustBadgeLevel @default(NONE)
+  completedJobs       Int             @default(0)
+  responseRate        Float           @default(100.0) // Taux de réponse en %
+  isVerified          Boolean         @default(false)
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  // Relations
+  services            Service[]
+  portfolios          PortfolioItem[]
+  proposals           Proposal[]
+  reviews             Review[]                  @relation("JobberReviews")
+  verifications       ProxyTrustVerification[]
+  favoritedBy         FavoriteJobber[]          @relation("JobberFavorited")
+
+  @@index([city, isAvailable])
+  @@index([averageRating])
+  @@index([trustBadge])
 }
 
-model ServiceRequest {
+// =============================================================================
+// CATEGORIES & TAXONOMY
+// =============================================================================
+
+model Category {
+  id           String         @id @default(cuid())
+  name         String         @unique // Ex: "Bâtiment & Construction", "Artisanat & Mode"
+  slug         String         @unique
+  description  String?
+  icon         String?        // Nom de l'icône Lucide (ex: "wrench", "scissors", "zap")
+  displayOrder Int            @default(0)
+  isActive     Boolean        @default(true)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  subcategories Subcategory[]
+  services      Service[]
+  requests      ServiceRequest[]
+
+  @@index([slug])
+  @@index([isActive])
+}
+
+model Subcategory {
+  id           String         @id @default(cuid())
+  categoryId   String
+  category     Category       @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  name         String         // Ex: "Plomberie sanitaire", "Électricité bâtiment"
+  slug         String         @unique
+  description  String?
+  icon         String?
+  displayOrder Int            @default(0)
+  isActive     Boolean        @default(true)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  services     Service[]
+  requests     ServiceRequest[]
+
+  @@unique([categoryId, name])
+  @@index([categoryId, slug])
+}
+
+// =============================================================================
+// SERVICES & PORTFOLIO
+// =============================================================================
+
+model Service {
+  id            String       @id @default(cuid())
+  jobberId      String
+  jobber        JobberProfile @relation(fields: [jobberId], references: [id], onDelete: Cascade)
+  categoryId    String
+  category      Category     @relation(fields: [categoryId], references: [id])
+  subcategoryId String?
+  subcategory   Subcategory? @relation(fields: [subcategoryId], references: [id])
+  title         String       // Ex: "Installation et dépannage de chauffe-eau"
+  description   String
+  startingPrice Float?       // Tarif indicatif en FCFA
+  priceUnit     String?      @default("prestation") // "heure", "jour", "prestation", "forfait"
+  isActive      Boolean      @default(true)
+  isFeatured    Boolean      @default(false)
+  expiresAt     DateTime?    // Validité 15 jours par crédit de publication
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([jobberId])
+  @@index([categoryId])
+  @@index([isActive])
+}
+
+model PortfolioItem {
   id          String        @id @default(cuid())
-  title       String
-  description String
-  category    String
-  city        String
-  quarter     String
-  budget      Float?
-  status      RequestStatus @default(PENDING)
-  isUrgent    Boolean       @default(false)
-  clientId    String
-  client      User          @relation("ClientRequests", fields: [clientId], references: [id], onDelete: Cascade)
+  jobberId    String
+  jobber      JobberProfile @relation(fields: [jobberId], references: [id], onDelete: Cascade)
+  title       String        // Ex: "Rénovation plomberie villa Haie Vive"
+  description String?
+  photoUrl    String?       // Image principale
+  avantUrl    String?       // Photo Avant (pour comparateur ergonomique)
+  apresUrl    String?       // Photo Après
+  isVerified  Boolean       @default(true)
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
+
+  @@index([jobberId])
+}
+
+// =============================================================================
+// SERVICE REQUESTS & PROPOSALS
+// =============================================================================
+
+model ServiceRequest {
+  id              String         @id @default(cuid())
+  clientId        String
+  client          User           @relation("ClientRequests", fields: [clientId], references: [id], onDelete: Cascade)
+  title           String         // Ex: "Fuite importante sous évier cuisine"
+  description     String
+  categoryId      String
+  category        Category       @relation(fields: [categoryId], references: [id])
+  subcategoryId   String?
+  subcategory     Subcategory?   @relation(fields: [subcategoryId], references: [id])
+  city            String         // Ex: "Cotonou"
+  quarter         String         // Ex: "Haie Vive"
+  landmark        String?        // Repère textuel sans carte (ex: "Face pharmacie Camp Guézo")
+  latitude        Float?         // Coordonnées pour calcul Haversine backend
+  longitude       Float?
+  dateLimite      DateTime?      // Date souhaitée pour la prestation
+  estUrgent       Boolean        @default(false) // Demande urgente (intervention rapide)
+  budgetIndicatif Float?         // Budget estimé en FCFA
+  status          RequestStatus  @default(OPEN)
+  photos          String[]       @default([]) // URLs des photos du problème
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  proposals       Proposal[]
+  conversation    Conversation?
+  review          Review?
+
+  @@index([city, categoryId])
+  @@index([status])
+  @@index([clientId])
+  @@index([estUrgent])
+}
+
+model Proposal {
+  id          String         @id @default(cuid())
+  requestId   String
+  request     ServiceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  jobberId    String
+  jobber      JobberProfile  @relation(fields: [jobberId], references: [id], onDelete: Cascade)
+  montant     Float          // Montant proposé en FCFA
+  delaiJours  Int            // Délai d'intervention estimé en jours
+  message     String         // Détails du devis et explications
+  status      ProposalStatus @default(PENDING)
+  acceptedAt  DateTime?
+  rejectedAt  DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([requestId])
+  @@index([jobberId])
+  @@index([status])
+}
+
+// =============================================================================
+// MESSAGING & ANTI-DISINTERMEDIATION
+// =============================================================================
+
+model Conversation {
+  id                String          @id @default(cuid())
+  requestId         String?         @unique
+  request           ServiceRequest? @relation(fields: [requestId], references: [id], onDelete: SetNull)
+  isContactUnlocked Boolean         @default(false) // Débloqué après acceptation de devis
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  messages          Message[]
+}
+
+model Message {
+  id              String       @id @default(cuid())
+  conversationId  String
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId        String
+  sender          User         @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiverId      String?      // Destinataire direct pour notification
+  contentOriginal String       // Message brut non altéré pour audit de conformité
+  contentFiltered String       // Message filtré avec masquage (+229, numéros, emails, wa.me)
+  estMasque       Boolean      @default(false) // Indique si un masquage a été appliqué
+  attachmentUrl   String?
+  audioUrl        String?      // Support des notes vocales intégrées (Jalon M2 / V2)
+  audioDuration   Int?         // Durée audio en secondes
+  readAt          DateTime?
+  createdAt       DateTime     @default(now())
+
+  @@index([conversationId])
+  @@index([senderId])
+  @@index([createdAt])
+}
+
+// =============================================================================
+// REVIEWS & REPUTATION
+// =============================================================================
+
+model Review {
+  id             String         @id @default(cuid())
+  requestId      String         @unique // Strictement réservé aux missions terminées
+  request        ServiceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  authorId       String
+  author         User           @relation("AuthorReviews", fields: [authorId], references: [id], onDelete: Cascade)
+  targetId       String         // Profil Jobeur évalué
+  target         JobberProfile  @relation("JobberReviews", fields: [targetId], references: [id], onDelete: Cascade)
+  rating         Int            // Note globale de 1 à 5
+  qualite        Int?           // Qualité du travail (1-5)
+  ponctualite    Int?           // Respect des délais (1-5)
+  prix           Int?           // Rapport qualité/prix (1-5)
+  communication  Int?           // Amabilité & communication (1-5)
+  commentaire    String
+  jobberReply    String?        // Droit de réponse unique du Jobeur
+  jobberReplyAt  DateTime?
+  isModerated    Boolean        @default(false)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@index([targetId])
+  @@index([rating])
+}
+
+// =============================================================================
+// PROXYTRUST & IDENTITY VERIFICATION
+// =============================================================================
+
+model ProxyTrustVerification {
+  id             String             @id @default(cuid())
+  jobberId       String
+  jobber         JobberProfile      @relation(fields: [jobberId], references: [id], onDelete: Cascade)
+  type           VerificationType   // CIP, CNI, DIPLOME, RCCM, IFU
+  status         VerificationStatus @default(PENDING)
+  documentUrl    String             // URL du document téléversé
+  documentNumber String?            // Numéro officiel de la pièce (ex: numéro CIP béninois)
+  comment        String?            // Motif en cas de rejet ou note du modérateur
+  verifiedAt     DateTime?
+  verifiedBy     String?            // ID de l'administrateur ayant audité
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  @@index([jobberId])
+  @@index([status])
+  @@index([type])
+}
+
+// =============================================================================
+// FAVORITES & RELATIONSHIPS
+// =============================================================================
+
+model FavoriteJobber {
+  id        String        @id @default(cuid())
+  clientId  String
+  client    User          @relation("UserFavorites", fields: [clientId], references: [id], onDelete: Cascade)
+  jobberId  String
+  jobber    JobberProfile @relation("JobberFavorited", fields: [jobberId], references: [id], onDelete: Cascade)
+  createdAt DateTime      @default(now())
+
+  @@unique([clientId, jobberId])
+  @@index([clientId])
+  @@index([jobberId])
+}
+
+// =============================================================================
+// CREDITS, PACKS & SUBSCRIPTIONS (SECTION 9 & 10)
+// =============================================================================
+
+model CreditAccount {
+  id                    String              @id @default(cuid())
+  userId                String              @unique
+  user                  User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  balance               Int                 @default(5) // Solde de crédits (5 gratuits offerts à l'inscription)
+  freeCreditsRemaining  Int                 @default(5)
+  purchasedCredits      Int                 @default(0)
+  boostUntil            DateTime?           // Date d'expiration de l'option de boost profil
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+
+  transactions          CreditTransaction[]
+}
+
+model CreditTransaction {
+  id              String                @id @default(cuid())
+  creditAccountId String
+  creditAccount   CreditAccount         @relation(fields: [creditAccountId], references: [id], onDelete: Cascade)
+  amount          Int                   // Positif pour crédit, négatif pour consommation
+  type            CreditTransactionType
+  description     String?               // Ex: "Pack Démarrage 10 crédits", "Publication service Plomberie"
+  packId          String?               // "PACK_DEMARRAGE", "PACK_VISIBILITE", "PACK_VIDEO"
+  createdAt       DateTime              @default(now())
+
+  @@index([creditAccountId])
+  @@index([type])
+}
+
+model Subscription {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan      String   // "PASS_7_DAYS", "PASS_30_DAYS", "PASS_90_DAYS"
+  amount    Float    // 100, 300, 500 FCFA
+  startsAt  DateTime @default(now())
+  endsAt    DateTime
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([isActive])
+}
+
+// =============================================================================
+// AUDIT & MODERATION LOGS
+// =============================================================================
+
+model ModerationLog {
+  id           String           @id @default(cuid())
+  adminId      String
+  admin        User             @relation("AdminModerator", fields: [adminId], references: [id], onDelete: Cascade)
+  action       ModerationAction
+  motif        String           // Motif obligatoire de l'action de modération
+  targetId     String           // ID de l'entité ciblée
+  targetType   String           // "USER", "PORTFOLIO", "REQUEST", "REVIEW", "VERIFICATION"
+  targetUserId String?
+  targetUser   User?            @relation("ModeratedUser", fields: [targetUserId], references: [id], onDelete: SetNull)
+  createdAt    DateTime         @default(now())
+
+  @@index([adminId])
+  @@index([targetId, targetType])
+  @@index([createdAt])
+}
+
+// =============================================================================
+// TERRITORIAL REFERENCE (BÉNIN) - RSK-02 & UNK-03
+// Référentiel toponymique officiel pour localisation textuelle sans carte Maps
+// =============================================================================
+
+model Department {
+  id        String    @id @default(cuid())
+  name      String    @unique // Ex: "Littoral", "Atlantique", "Ouémé", "Borgou"
+  code      String    @unique // Ex: "LIT", "ATL", "OUE", "BOR"
+  communes  Commune[]
+  createdAt DateTime  @default(now())
+}
+
+model Commune {
+  id              String           @id @default(cuid())
+  departmentId    String
+  department      Department       @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  name            String           // Ex: "Cotonou", "Abomey-Calavi", "Porto-Novo", "Parakou"
+  slug            String           @unique
+  latitude        Float?           // Barycentre pour calculs de distance Haversine backend
+  longitude       Float?
+  arrondissements Arrondissement[]
+  quarters        Quarter[]
+  createdAt       DateTime         @default(now())
+
+  @@index([departmentId])
+  @@index([slug])
+}
+
+model Arrondissement {
+  id        String    @id @default(cuid())
+  communeId String
+  commune   Commune   @relation(fields: [communeId], references: [id], onDelete: Cascade)
+  name      String    // Ex: "12ème Arrondissement", "Godomey", "Akassato"
+  slug      String    @unique
+  quarters  Quarter[]
+  createdAt DateTime  @default(now())
+
+  @@index([communeId])
+  @@index([slug])
+}
+
+model Quarter {
+  id               String          @id @default(cuid())
+  communeId        String
+  commune          Commune         @relation(fields: [communeId], references: [id], onDelete: Cascade)
+  arrondissementId String?
+  arrondissement   Arrondissement? @relation(fields: [arrondissementId], references: [id], onDelete: SetNull)
+  name             String          // Ex: "Haie Vive", "Cadjehoun", "Akpakpa", "Arconville"
+  slug             String          @unique
+  latitude         Float?          // Coordonnées barycentriques pour Haversine
+  longitude        Float?
+  commonLandmarks  String[]        @default([]) // Repères usuels textuels (ex: "Carrefour Club des Rois", "Camp Guézo")
+  createdAt        DateTime        @default(now())
+
+  @@index([communeId])
+  @@index([arrondissementId])
+  @@index([slug])
 }

@@ -58,6 +58,7 @@ const config: Config = {
         soft: "0 1px 3px 0 rgba(15, 23, 42, 0.04), 0 1px 2px -1px rgba(15, 23, 42, 0.02)",
         "soft-md": "0 4px 12px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -2px rgba(15, 23, 42, 0.03)",
         "soft-lg": "0 12px 24px -4px rgba(15, 23, 42, 0.06), 0 4px 8px -2px rgba(15, 23, 42, 0.02)",
+        "soft-inner": "inset 0 2px 4px 0 rgba(15, 23, 42, 0.03)",
       },
       transitionTimingFunction: {
         "soft-out": "cubic-bezier(0.16, 1, 0.3, 1)",
@@ -67,7 +68,9 @@ const config: Config = {
         "200": "200ms",
       },
       borderRadius: {
-        xl: "0.625rem",         // 10px
+        md: "0.375rem",          // 6px
+        lg: "0.5rem",            // 8px
+        xl: "0.625rem",          // 10px
         "2xl": "0.875rem",       // 14px
       },
     },

@@ -140,7 +140,7 @@ graph TD
     User --> Hybride[Compte Hybride Client / Jobeur]
     Admin([Équipe Opérationnelle]) --> SuperAdmin[Super Administrateur]
     Admin --> Moderateur[Modérateur Métier]
-    Admin --> Support[Agent Support / Médiation]
+    Admin --> Support[Conseiller Support / Médiation]
 ```
 
 1. **Le Client (Demandeur) :**

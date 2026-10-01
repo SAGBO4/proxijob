@@ -55,12 +55,6 @@ function LoginContent() {
     }
   };
 
-  // Remplissage rapide des comptes de démonstration
-  const fillDemo = (id: string, pwd: string = "ProxiJob@2026") => {
-    setIdentifier(id);
-    setPassword(pwd);
-  };
-
   return (
     <div className="min-h-[85vh] bg-slate-50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -208,39 +202,6 @@ function LoginContent() {
               )}
             </button>
           </form>
-
-          {/* Séparateur */}
-          <div className="mt-6 border-t border-slate-200 pt-5">
-            <p className="text-center text-xs font-medium text-slate-500 mb-3">
-              Comptes de test pré-configurés (Neon DB) :
-            </p>
-            <div className="grid grid-cols-3 gap-2 text-[11px]">
-              <button
-                type="button"
-                onClick={() => fillDemo("koffi.mensah@email.bj")}
-                className="py-1.5 px-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-700 font-medium text-center border border-slate-200 transition-colors"
-              >
-                Client (Koffi)
-              </button>
-              <button
-                type="button"
-                onClick={() => fillDemo("sebastien.dossou@email.bj")}
-                className="py-1.5 px-2 bg-amber-50 hover:bg-amber-100 rounded-lg text-amber-900 font-medium text-center border border-amber-200 transition-colors"
-              >
-                Jobeur (Sébastien)
-              </button>
-              <button
-                type="button"
-                onClick={() => fillDemo("admin@proxijob.bj")}
-                className="py-1.5 px-2 bg-slate-900 hover:bg-slate-800 rounded-lg text-white font-medium text-center transition-colors"
-              >
-                Admin (Console)
-              </button>
-            </div>
-            <p className="text-[10px] text-center text-slate-400 mt-1.5">
-              Mot de passe test : <code className="font-mono text-slate-600">ProxiJob@2026</code>
-            </p>
-          </div>
 
           {/* Lien vers Inscription */}
           <div className="mt-6 text-center text-sm text-slate-600 pt-4 border-t border-slate-100">

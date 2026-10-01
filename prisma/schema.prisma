@@ -1,0 +1,77 @@
+// Prisma schema for PROXIJOB
+// Configured for Neon PostgreSQL with Connection Pooling and Direct URL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  CLIENT
+  JOBBER
+  ADMIN
+}
+
+enum RequestStatus {
+  PENDING
+  ACCEPTED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  phone         String?   @unique
+  password      String?
+  image         String?
+  role          Role      @default(CLIENT)
+  city          String?
+  quarter       String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  jobberProfile JobberProfile?
+  requests      ServiceRequest[] @relation("ClientRequests")
+}
+
+model JobberProfile {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  headline       String?
+  bio            String?
+  category       String
+  subcategories  String[] @default([])
+  hourlyRate     Float?
+  rating         Float    @default(5.0)
+  completedJobs  Int      @default(0)
+  isVerified     Boolean  @default(false)
+  isAvailable    Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model ServiceRequest {
+  id          String        @id @default(cuid())
+  title       String
+  description String
+  category    String
+  city        String
+  quarter     String
+  budget      Float?
+  status      RequestStatus @default(PENDING)
+  isUrgent    Boolean       @default(false)
+  clientId    String
+  client      User          @relation("ClientRequests", fields: [clientId], references: [id], onDelete: Cascade)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}

@@ -1,0 +1,52 @@
+name: PROXIJOB CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+      - dev
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Lint, Typecheck & Build
+    runs-on: ubuntu-latest
+
+    env:
+      DATABASE_URL: "postgresql://user:password@ep-xyz-pooler.us-east-2.aws.neon.tech/proxijob?sslmode=require"
+      DIRECT_URL: "postgresql://user:password@ep-xyz.us-east-2.aws.neon.tech/proxijob?sslmode=require"
+      NEXTAUTH_SECRET: "ci-secret-for-build-and-linting-purposes-only"
+      NEXTAUTH_URL: "http://localhost:3000"
+      NEXT_PUBLIC_APP_URL: "http://localhost:3000"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20+
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Run TypeScript typecheck
+        run: npm run typecheck
+
+      - name: Build Next.js application
+        run: npm run build

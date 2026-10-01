@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Surfaces & Base Soft UI */
+    --background: 210 40% 98%;          /* #F8FAFC - Slate 50 */
+    --foreground: 222.2 84% 4.9%;        /* #0F172A - Slate 900 */
+    --card: 0 0% 100%;                  /* #FFFFFF */
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    /* Univers Client (Bleu Royal #1E40AF) */
+    --client-primary: 224 71% 40%;       /* #1E40AF */
+    --client-primary-foreground: 0 0% 100%;
+    --client-hover: 224 76% 48%;         /* #1D4ED8 */
+    --client-surface: 214 100% 97%;      /* #EFF6FF */
+
+    /* Univers Jobeur (Ambre Doux #EAB308) */
+    --jobber-primary: 43 96% 48%;        /* #EAB308 */
+    --jobber-primary-foreground: 222.2 84% 4.9%;
+    --jobber-hover: 37 91% 40%;          /* #CA8A04 */
+    --jobber-text: 35 92% 29%;           /* #854D0E */
+    --jobber-surface: 48 100% 96%;       /* #FFFBEB */
+
+    /* Statuts Sémantiques */
+    --success: 160 84% 39%;              /* #059669 */
+    --success-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%;        /* #DC2626 */
+    --destructive-foreground: 210 40% 98%;
+    --warning: 43 96% 48%;               /* #EAB308 */
+    --warning-foreground: 35 92% 29%;
+
+    /* Contours & Rayons */
+    --border: 214.3 31.8% 91.4%;         /* #E2E8F0 */
+    --input: 214.3 31.8% 85%;            /* #CBD5E1 */
+    --ring: 224 71% 40%;                 /* #1E40AF */
+    --radius: 0.625rem;                  /* 10px - Rayon doux */
+
+    /* Ombres Portées Soft UI */
+    --shadow-soft: 0 1px 3px 0 rgba(15, 23, 42, 0.04), 0 1px 2px -1px rgba(15, 23, 42, 0.02);
+    --shadow-soft-md: 0 4px 12px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -2px rgba(15, 23, 42, 0.03);
+    --shadow-soft-lg: 0 12px 24px -4px rgba(15, 23, 42, 0.06), 0 4px 8px -2px rgba(15, 23, 42, 0.02);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}

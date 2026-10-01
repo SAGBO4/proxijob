@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
+import { RoleProvider } from "@/context/RoleContext";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
+import { MobileNav } from "@/components/MobileNav";
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -22,8 +26,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" className={jakarta.variable}>
-      <body className="min-h-screen font-sans bg-background text-foreground antialiased">
-        {children}
+      <body className="min-h-screen font-sans bg-background text-foreground antialiased flex flex-col selection:bg-client-light selection:text-client">
+        <RoleProvider>
+          <Header />
+          <main className="flex-1 pb-16 md:pb-0">{children}</main>
+          <Footer />
+          <MobileNav />
+        </RoleProvider>
       </body>
     </html>
   );

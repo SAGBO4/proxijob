@@ -28,6 +28,7 @@ export function Header() {
     { label: "Trouver un Jobeur", href: "/jobeurs" },
     { label: "Demandes en cours", href: "/demandes" },
     { label: "Comment ça marche", href: "/#comment-ca-marche" },
+    { label: "Vidéo Démo Mobile", href: "/video" },
   ];
 
   const dashboardHref = isAdmin

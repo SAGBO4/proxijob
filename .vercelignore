@@ -1,0 +1,11 @@
+.git
+.github
+node_modules
+brag-output/work
+public/videos/temp
+test-results
+playwright-report
+blob-report
+tests
+scripts
+*.log

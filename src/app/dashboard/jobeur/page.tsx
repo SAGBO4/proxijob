@@ -53,15 +53,17 @@ export default function JobberDashboardPage() {
 
         if (reqRes.ok) {
           const reqData = await reqRes.json();
-          if (Array.isArray(reqData)) {
-            setOpportunities(reqData.filter((r) => r.status === "OPEN"));
+          const list: ServiceRequest[] = Array.isArray(reqData) ? reqData : (reqData.data || []);
+          if (Array.isArray(list)) {
+            setOpportunities(list.filter((r) => r.status === "OPEN"));
           }
         }
 
         if (jobberRes.ok) {
           const jobbers = await jobberRes.json();
-          if (Array.isArray(jobbers) && jobbers.length > 0) {
-            const first = jobbers[0];
+          const list = Array.isArray(jobbers) ? jobbers : (jobbers.data || []);
+          if (Array.isArray(list) && list.length > 0) {
+            const first = list[0];
             setJobberInfo((prev) => ({
               ...prev,
               name: user?.name || first.name,

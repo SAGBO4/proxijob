@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Search,
@@ -23,7 +23,7 @@ import {
   Smartphone,
   Award,
 } from "lucide-react";
-import { MOCK_JOBBERS, CATEGORIES, BENIN_COMMUNES } from "@/lib/mock-data";
+import { CATEGORIES, BENIN_COMMUNES, type Jobber } from "@/lib/mock-data";
 import { JobberCard } from "@/components/JobberCard";
 import { SwitchRoleButton } from "@/components/SwitchRoleButton";
 import { useRole } from "@/context/RoleContext";
@@ -32,6 +32,19 @@ export default function Home() {
   const { isClient, isJobber, toggleRole } = useRole();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCommune, setSelectedCommune] = useState("Cotonou");
+  const [featuredJobbers, setFeaturedJobbers] = useState<Jobber[]>([]);
+
+  useEffect(() => {
+    fetch("/api/jobeurs")
+      .then((res) => res.json())
+      .then((json) => {
+        const list = Array.isArray(json) ? json : json.data;
+        if (Array.isArray(list) && list.length > 0) {
+          setFeaturedJobbers(list.slice(0, 3));
+        }
+      })
+      .catch((err) => console.error("Erreur chargement artisans:", err));
+  }, []);
 
   // Icon mapping for categories
   const getCategoryIcon = (iconName: string) => {
@@ -49,8 +62,6 @@ export default function Home() {
         return <HomeIcon className="h-6 w-6 text-emerald-600" />;
     }
   };
-
-  const featuredJobbers = MOCK_JOBBERS.slice(0, 3);
 
   const testimonials = [
     {

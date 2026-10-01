@@ -14,7 +14,8 @@ function normalizePhone(phone: string): string {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { identifier, password } = body;
+    const identifier = (body.identifier || body.email || body.phone || "").trim();
+    const password = body.password;
 
     if (!identifier || !password) {
       return NextResponse.json(
@@ -23,7 +24,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const trimmedIdentifier = identifier.trim();
+    const trimmedIdentifier = identifier;
     const isEmail = trimmedIdentifier.includes("@");
 
     // Recherche de l'utilisateur par email ou par téléphone

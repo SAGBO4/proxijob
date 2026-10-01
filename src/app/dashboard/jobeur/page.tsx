@@ -8,7 +8,7 @@ import {
   ShieldCheck,
   TrendingUp,
   Clock,
-  Sparkles,
+  Zap,
   CheckCircle2,
   AlertCircle,
   Eye,
@@ -116,7 +116,7 @@ export default function JobberDashboardPage() {
           <div className="rounded-2xl border border-border bg-white p-5 shadow-soft space-y-1">
             <div className="flex items-center justify-between text-slate-500 text-xs">
               <span className="font-semibold">Boost Visibilité Grand Cotonou</span>
-              <Sparkles className="h-4 w-4 text-amber-500" />
+              <Zap className="h-4 w-4 text-amber-500" />
             </div>
             <div className="flex items-baseline gap-2">
               <span className="text-lg sm:text-xl font-extrabold text-amber-900">

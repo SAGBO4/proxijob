@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, Suspense } from "react";
+import React, { useState, useEffect, useMemo, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   Search,
@@ -9,10 +9,10 @@ import {
   ArrowUpDown,
   Filter,
   X,
-  Sparkles,
   ShieldCheck,
+  Loader2,
 } from "lucide-react";
-import { MOCK_JOBBERS, BENIN_COMMUNES, calculateDistanceKm } from "@/lib/mock-data";
+import { BENIN_COMMUNES, calculateDistanceKm, type Jobber } from "@/lib/mock-data";
 import { JobberCard } from "@/components/JobberCard";
 import { ProximityFilter, FilterState } from "@/components/ProximityFilter";
 
@@ -23,11 +23,14 @@ function JobeursContent() {
   const initialCommune = searchParams.get("commune") || "";
   const initialCategory = searchParams.get("category") || "";
 
+  const [jobbersList, setJobbersList] = useState<Jobber[]>([]);
+  const [loading, setLoading] = useState(true);
+
   const [filters, setFilters] = useState<FilterState>({
     searchQuery: initialSearch,
     commune: initialCommune,
     quarter: "",
-    radiusKm: 15,
+    radiusKm: 25,
     category: initialCategory,
     verifiedOnly: false,
     minRating: 0,
@@ -35,6 +38,20 @@ function JobeursContent() {
 
   const [sortBy, setSortBy] = useState<"relevance" | "rating" | "price_asc">("relevance");
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+
+  // Chargement réel depuis Neon PostgreSQL via /api/jobeurs
+  useEffect(() => {
+    setLoading(true);
+    fetch("/api/jobeurs")
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.data && Array.isArray(json.data)) {
+          setJobbersList(json.data);
+        }
+      })
+      .catch((err) => console.error("Erreur lors de la récupération des jobeurs:", err))
+      .finally(() => setLoading(false));
+  }, []);
 
   // Référence géographique sans carte pour le calcul Haversine (ACC-03, ACC-04)
   const userRefCoords = useMemo(() => {
@@ -52,21 +69,22 @@ function JobeursContent() {
         return { lat: communeData.latitude, lon: communeData.longitude };
       }
     }
-    // Barycentre par défaut de l'utilisateur actif (Fidjrossè, Cotonou)
+    // Barycentre par défaut (Fidjrossè, Cotonou)
     return { lat: 6.3591, lon: 2.3789 };
   }, [filters.commune, filters.quarter]);
 
-  // Filtrage dynamique sans carte (ACC-02, ACC-03, ACC-04)
+  // Filtrage dynamique réel sur les données Neon
   const filteredJobbers = useMemo(() => {
-    return MOCK_JOBBERS.map((jobber) => {
-      const distance = calculateDistanceKm(
-        userRefCoords.lat,
-        userRefCoords.lon,
-        jobber.latitude,
-        jobber.longitude
-      );
-      return { jobber, distance };
-    })
+    return jobbersList
+      .map((jobber) => {
+        const distance = calculateDistanceKm(
+          userRefCoords.lat,
+          userRefCoords.lon,
+          jobber.latitude,
+          jobber.longitude
+        );
+        return { jobber, distance };
+      })
       .filter(({ jobber, distance }) => {
         // 1. Recherche textuelle libre
         if (filters.searchQuery.trim()) {
@@ -74,7 +92,7 @@ function JobeursContent() {
           const matchName = jobber.name.toLowerCase().includes(query);
           const matchTrade = jobber.trade.toLowerCase().includes(query);
           const matchSkills = jobber.skills.some((s) => s.toLowerCase().includes(query));
-          const matchHeadline = jobber.headline.toLowerCase().includes(query);
+          const matchHeadline = (jobber.headline || "").toLowerCase().includes(query);
           if (!matchName && !matchTrade && !matchSkills && !matchHeadline) {
             return false;
           }
@@ -117,12 +135,12 @@ function JobeursContent() {
           return b.jobber.averageRating - a.jobber.averageRating;
         }
         if (sortBy === "price_asc") {
-          return a.jobber.startingPrice - b.jobber.startingPrice;
+          return (a.jobber.startingPrice || 0) - (b.jobber.startingPrice || 0);
         }
         // Par défaut pertinence : plus grand nombre de missions réussies
         return b.jobber.completedJobs - a.jobber.completedJobs;
       });
-  }, [filters, sortBy, userRefCoords]);
+  }, [jobbersList, filters, sortBy, userRefCoords]);
 
   return (
     <div className="min-h-screen bg-slate-50/50 py-8">
@@ -181,10 +199,19 @@ function JobeursContent() {
           {/* Colonne Droite : Résultats */}
           <main className="lg:col-span-8 space-y-5">
             {/* Compteur de résultats */}
-            <div className="flex items-center justify-between text-xs font-semibold text-slate-600 bg-white p-3.5 rounded-xl border border-border shadow-soft">
+            <div className="flex items-center justify-between text-xs font-semibold text-slate-600 bg-white p-3.5 rounded-xl border border-slate-200 shadow-soft">
               <span>
-                <strong>{filteredJobbers.length}</strong> artisan{filteredJobbers.length > 1 ? "s" : ""} trouvé{filteredJobbers.length > 1 ? "s" : ""}{" "}
-                {filters.commune ? `à ${filters.commune}` : "au Bénin"}
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin text-client" />
+                    Chargement des artisans depuis la base de données...
+                  </span>
+                ) : (
+                  <>
+                    <strong>{filteredJobbers.length}</strong> artisan{filteredJobbers.length > 1 ? "s" : ""} trouvé{filteredJobbers.length > 1 ? "s" : ""}{" "}
+                    {filters.commune ? `à ${filters.commune}` : "au Bénin"}
+                  </>
+                )}
               </span>
 
               {filters.verifiedOnly && (
@@ -196,7 +223,22 @@ function JobeursContent() {
             </div>
 
             {/* Liste des cartes Jobeurs */}
-            {filteredJobbers.length > 0 ? (
+            {loading ? (
+              <div className="space-y-4">
+                {[1, 2, 3].map((n) => (
+                  <div key={n} className="rounded-2xl border border-slate-200 bg-white p-6 animate-pulse">
+                    <div className="flex gap-4">
+                      <div className="h-14 w-14 rounded-2xl bg-slate-200" />
+                      <div className="space-y-2 flex-1">
+                        <div className="h-4 bg-slate-200 rounded w-1/3" />
+                        <div className="h-3 bg-slate-200 rounded w-1/4" />
+                        <div className="h-3 bg-slate-200 rounded w-1/2" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : filteredJobbers.length > 0 ? (
               <div className="space-y-4">
                 {filteredJobbers.map(({ jobber, distance }) => (
                   <JobberCard key={jobber.id} jobber={jobber} userDistanceKm={distance} />
@@ -220,7 +262,7 @@ function JobeursContent() {
                       searchQuery: "",
                       commune: "",
                       quarter: "",
-                      radiusKm: 15,
+                      radiusKm: 25,
                       category: "",
                       verifiedOnly: false,
                       minRating: 0,

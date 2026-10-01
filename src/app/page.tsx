@@ -21,7 +21,7 @@ import {
   ChevronRight,
   Shield,
   Smartphone,
-  Sparkles,
+  Award,
 } from "lucide-react";
 import { MOCK_JOBBERS, CATEGORIES, BENIN_COMMUNES } from "@/lib/mock-data";
 import { JobberCard } from "@/components/JobberCard";
@@ -221,7 +221,7 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
             <div>
               <div className="inline-flex items-center gap-1.5 text-xs font-bold text-client uppercase tracking-wider mb-1">
-                <Sparkles className="h-3.5 w-3.5" />
+                <Award className="h-3.5 w-3.5" />
                 <span>Savoir-faire locaux</span>
               </div>
               <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">

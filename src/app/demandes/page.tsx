@@ -1,29 +1,44 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import {
   FileText,
   PlusCircle,
   AlertCircle,
   MapPin,
-  Filter,
   Search,
-  CheckCircle2,
-  Clock,
+  Loader2,
 } from "lucide-react";
-import { MOCK_REQUESTS, BENIN_COMMUNES, CATEGORIES, calculateDistanceKm } from "@/lib/mock-data";
+import { BENIN_COMMUNES, calculateDistanceKm, type ServiceRequest } from "@/lib/mock-data";
 import { ServiceRequestCard } from "@/components/ServiceRequestCard";
 import { useRole } from "@/context/RoleContext";
 
 export default function DemandesPage() {
   const { isClient, isJobber, user } = useRole();
 
+  const [requestsList, setRequestsList] = useState<ServiceRequest[]>([]);
+  const [loading, setLoading] = useState(true);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCommune, setSelectedCommune] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [urgentOnly, setUrgentOnly] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<string>("ALL");
+
+  // Chargement réel depuis Neon PostgreSQL via /api/demandes
+  useEffect(() => {
+    setLoading(true);
+    fetch("/api/demandes")
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.data && Array.isArray(json.data)) {
+          setRequestsList(json.data);
+        }
+      })
+      .catch((err) => console.error("Erreur chargement demandes:", err))
+      .finally(() => setLoading(false));
+  }, []);
 
   // Référence géographique sans carte de l'utilisateur actif (Fidjrossè, Cotonou)
   const userRefCoords = useMemo(() => {
@@ -39,42 +54,49 @@ export default function DemandesPage() {
   }, [selectedCommune]);
 
   const filteredRequests = useMemo(() => {
-    return MOCK_REQUESTS.map((req) => {
-      const distance = calculateDistanceKm(
-        userRefCoords.lat,
-        userRefCoords.lon,
-        req.latitude,
-        req.longitude
-      );
-      return { request: req, distance };
-    }).filter(({ request: req }) => {
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
-        const matchTitle = req.title.toLowerCase().includes(q);
-        const matchDesc = req.description.toLowerCase().includes(q);
-        const matchQuarter = req.quarter.toLowerCase().includes(q);
-        if (!matchTitle && !matchDesc && !matchQuarter) return false;
-      }
+    return requestsList
+      .map((req) => {
+        const distance = calculateDistanceKm(
+          userRefCoords.lat,
+          userRefCoords.lon,
+          req.latitude,
+          req.longitude
+        );
+        return { request: req, distance };
+      })
+      .filter(({ request: req }) => {
+        if (searchQuery.trim()) {
+          const q = searchQuery.toLowerCase();
+          const matchTitle = req.title.toLowerCase().includes(q);
+          const matchDesc = req.description.toLowerCase().includes(q);
+          const matchQuarter = req.quarter.toLowerCase().includes(q);
+          if (!matchTitle && !matchDesc && !matchQuarter) return false;
+        }
 
-      if (selectedCommune && req.city.toLowerCase() !== selectedCommune.toLowerCase()) {
-        return false;
-      }
+        if (selectedCommune && req.city.toLowerCase() !== selectedCommune.toLowerCase()) {
+          return false;
+        }
 
-      if (selectedCategory && !req.category.toLowerCase().includes(selectedCategory.toLowerCase())) {
-        return false;
-      }
+        if (
+          selectedCategory &&
+          !((req as any).categoryName || req.category || "")
+            .toLowerCase()
+            .includes(selectedCategory.toLowerCase())
+        ) {
+          return false;
+        }
 
-      if (urgentOnly && !req.isUrgent) {
-        return false;
-      }
+        if (urgentOnly && !(req as any).estUrgent && !req.isUrgent) {
+          return false;
+        }
 
-      if (selectedStatus !== "ALL" && req.status !== selectedStatus) {
-        return false;
-      }
+        if (selectedStatus !== "ALL" && req.status !== selectedStatus) {
+          return false;
+        }
 
-      return true;
-    });
-  }, [searchQuery, selectedCommune, selectedCategory, urgentOnly, selectedStatus, userRefCoords]);
+        return true;
+      });
+  }, [requestsList, searchQuery, selectedCommune, selectedCategory, urgentOnly, selectedStatus, userRefCoords]);
 
   return (
     <div className="min-h-screen bg-slate-50/50 py-8">
@@ -104,9 +126,9 @@ export default function DemandesPage() {
         </div>
 
         {/* Barre de filtres rapide */}
-        <div className="rounded-2xl border border-border bg-white p-4 shadow-soft mb-6 space-y-3">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-soft mb-6 space-y-3">
           <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-            <div className="flex items-center gap-2 rounded-xl border border-input px-3.5 py-2.5 text-sm bg-white focus-within:border-client">
+            <div className="flex items-center gap-2 rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm bg-white focus-within:border-client">
               <Search className="h-4 w-4 text-slate-400 shrink-0" />
               <input
                 type="text"
@@ -117,7 +139,7 @@ export default function DemandesPage() {
               />
             </div>
 
-            <div className="flex items-center gap-2 rounded-xl border border-input px-3.5 py-2.5 text-sm bg-white focus-within:border-client">
+            <div className="flex items-center gap-2 rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm bg-white focus-within:border-client">
               <MapPin className="h-4 w-4 text-slate-400 shrink-0" />
               <select
                 value={selectedCommune}
@@ -133,7 +155,7 @@ export default function DemandesPage() {
               </select>
             </div>
 
-            <div className="flex items-center gap-2 rounded-xl border border-input px-3.5 py-2.5 text-sm bg-white focus-within:border-client">
+            <div className="flex items-center gap-2 rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm bg-white focus-within:border-client">
               <select
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
@@ -147,13 +169,13 @@ export default function DemandesPage() {
             </div>
 
             {/* Toggle Urgence < 2h */}
-            <label className="flex items-center justify-between sm:justify-start gap-2.5 rounded-xl border border-input px-3.5 py-2.5 bg-slate-50 cursor-pointer select-none">
+            <label className="flex items-center justify-between sm:justify-start gap-2.5 rounded-xl border border-slate-200 px-3.5 py-2.5 bg-slate-50 cursor-pointer select-none">
               <div className="flex items-center gap-2">
                 <input
                   type="checkbox"
                   checked={urgentOnly}
                   onChange={(e) => setUrgentOnly(e.target.checked)}
-                  className="rounded border-input text-red-600 focus:ring-red-500 h-4 w-4"
+                  className="rounded border-slate-300 text-red-600 focus:ring-red-500 h-4 w-4"
                 />
                 <span className="text-xs font-bold text-red-700 flex items-center gap-1">
                   <AlertCircle className="h-3.5 w-3.5" />
@@ -168,17 +190,38 @@ export default function DemandesPage() {
         <div className="space-y-4">
           <div className="flex items-center justify-between text-xs text-slate-500 font-semibold px-1">
             <span>
-              {filteredRequests.length} demande{filteredRequests.length > 1 ? "s" : ""} active{filteredRequests.length > 1 ? "s" : ""}
+              {loading ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin text-client" />
+                  Chargement des demandes en cours...
+                </span>
+              ) : (
+                <>
+                  {filteredRequests.length} demande{filteredRequests.length > 1 ? "s" : ""} active{filteredRequests.length > 1 ? "s" : ""} dans la base
+                </>
+              )}
             </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-            {filteredRequests.map(({ request, distance }) => (
-              <ServiceRequestCard key={request.id} request={request} userDistanceKm={distance} />
-            ))}
-          </div>
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+              {[1, 2].map((n) => (
+                <div key={n} className="rounded-2xl border border-slate-200 bg-white p-6 animate-pulse">
+                  <div className="h-5 bg-slate-200 rounded w-2/3 mb-3" />
+                  <div className="h-4 bg-slate-200 rounded w-full mb-2" />
+                  <div className="h-4 bg-slate-200 rounded w-4/5" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+              {filteredRequests.map(({ request, distance }) => (
+                <ServiceRequestCard key={request.id} request={request} userDistanceKm={distance} />
+              ))}
+            </div>
+          )}
 
-          {filteredRequests.length === 0 && (
+          {!loading && filteredRequests.length === 0 && (
             <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center shadow-soft">
               <FileText className="mx-auto h-12 w-12 text-slate-300 mb-3" />
               <h3 className="font-bold text-slate-900 text-base">Aucune demande trouvée</h3>

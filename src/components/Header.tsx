@@ -3,14 +3,25 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Wrench, PlusCircle, LayoutDashboard, Shield, Menu, X, Bell } from "lucide-react";
+import {
+  Wrench,
+  PlusCircle,
+  LayoutDashboard,
+  Shield,
+  Menu,
+  X,
+  LogOut,
+  LogIn,
+  UserPlus,
+  User,
+} from "lucide-react";
 import { SwitchRoleButton } from "./SwitchRoleButton";
 import { useRole } from "@/context/RoleContext";
 import { cn } from "@/lib/utils";
 
 export function Header() {
   const pathname = usePathname();
-  const { isClient, isJobber, user } = useRole();
+  const { isClient, isJobber, isAdmin, user, isAuthenticated, logout } = useRole();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = [
@@ -19,12 +30,16 @@ export function Header() {
     { label: "Comment ça marche", href: "/#comment-ca-marche" },
   ];
 
-  const dashboardHref = isClient ? "/dashboard/client" : "/dashboard/jobeur";
+  const dashboardHref = isAdmin
+    ? "/admin"
+    : isClient
+    ? "/dashboard/client"
+    : "/dashboard/jobeur";
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-white/95 backdrop-blur-md supports-[backdrop-filter]:bg-white/80 transition-all">
+    <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/95 backdrop-blur-md transition-all">
       <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        {/* Logo ProxiJob avec identité béninoise */}
+        {/* Logo ProxiJob Bénin */}
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-2 group">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-client text-white shadow-soft transition-transform duration-150 group-hover:scale-105">
@@ -66,58 +81,93 @@ export function Header() {
 
         {/* Actions Droite */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Commutateur de Rôle 1-Clic */}
-          <SwitchRoleButton />
+          {isAuthenticated ? (
+            <>
+              {/* Commutateur de Rôle 1-Clic */}
+              <SwitchRoleButton />
 
-          {/* Bouton Publier / Nouveau Besoin (si Client) ou Espace Jobeur */}
-          {isClient ? (
-            <Link
-              href="/demandes/nouvelle"
-              className="hidden sm:inline-flex items-center gap-1.5 rounded-xl bg-client px-3.5 py-2 text-xs sm:text-sm font-semibold text-white shadow-soft hover:bg-client-hover active:scale-[0.98] transition-all"
-            >
-              <PlusCircle className="h-4 w-4" />
-              <span>Publier un besoin</span>
-            </Link>
+              {/* Bouton Publier / Nouveau Besoin (si Client) ou Trouver chantier */}
+              {isClient ? (
+                <Link
+                  href="/demandes/nouvelle"
+                  className="hidden sm:inline-flex items-center gap-1.5 rounded-xl bg-client px-3.5 py-2 text-xs sm:text-sm font-semibold text-white shadow-soft hover:bg-client-hover active:scale-[0.98] transition-all"
+                >
+                  <PlusCircle className="h-4 w-4" />
+                  <span>Publier un besoin</span>
+                </Link>
+              ) : (
+                <Link
+                  href="/demandes"
+                  className="hidden sm:inline-flex items-center gap-1.5 rounded-xl bg-jobber px-3.5 py-2 text-xs sm:text-sm font-semibold text-slate-900 shadow-soft hover:bg-jobber-hover active:scale-[0.98] transition-all"
+                >
+                  <span>Trouver un chantier</span>
+                </Link>
+              )}
+
+              {/* Lien Dashboard */}
+              <Link
+                href={dashboardHref}
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs sm:text-sm font-semibold transition-all active:scale-95 shadow-soft",
+                  pathname.startsWith("/dashboard")
+                    ? "bg-slate-900 text-white border-slate-900"
+                    : "border-slate-200 text-slate-700 hover:bg-slate-100"
+                )}
+              >
+                <LayoutDashboard className="h-4 w-4" />
+                <span className="hidden md:inline">
+                  {user.name ? user.name.split(" ")[0] : "Dashboard"}
+                </span>
+              </Link>
+
+              {/* Lien Admin console si habilité */}
+              {(isAdmin || user.role === "ADMIN" || user.role === "MODERATOR") && (
+                <Link
+                  href="/admin"
+                  title="Console Admin & Modération"
+                  className={cn(
+                    "hidden md:flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-600 hover:text-client hover:bg-slate-100 transition-colors",
+                    pathname === "/admin" ? "bg-slate-100 text-client border-client" : ""
+                  )}
+                >
+                  <Shield className="h-4 w-4" />
+                </Link>
+              )}
+
+              {/* Déconnexion */}
+              <button
+                type="button"
+                onClick={logout}
+                title="Déconnexion"
+                className="hidden sm:inline-flex items-center justify-center h-9 w-9 rounded-xl border border-slate-200 text-slate-500 hover:text-red-600 hover:bg-red-50 hover:border-red-200 transition-colors"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            </>
           ) : (
-            <Link
-              href="/demandes"
-              className="hidden sm:inline-flex items-center gap-1.5 rounded-xl bg-jobber px-3.5 py-2 text-xs sm:text-sm font-semibold text-slate-900 shadow-soft hover:bg-jobber-hover active:scale-[0.98] transition-all"
-            >
-              <span>Trouver un chantier</span>
-            </Link>
+            <>
+              <Link
+                href="/connexion"
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700 hover:text-client transition-colors"
+              >
+                <LogIn className="h-4 w-4 text-slate-500" />
+                <span>Connexion</span>
+              </Link>
+              <Link
+                href="/inscription"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-client px-3.5 py-2 text-xs sm:text-sm font-semibold text-white shadow-soft hover:bg-client-hover active:scale-[0.98] transition-all"
+              >
+                <UserPlus className="h-4 w-4" />
+                <span>Inscription</span>
+              </Link>
+            </>
           )}
-
-          {/* Lien Dashboard */}
-          <Link
-            href={dashboardHref}
-            className={cn(
-              "inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs sm:text-sm font-semibold transition-all active:scale-95 shadow-soft",
-              pathname.startsWith("/dashboard")
-                ? "bg-slate-900 text-white border-slate-900"
-                : "border-border text-slate-700 hover:bg-slate-100"
-            )}
-          >
-            <LayoutDashboard className="h-4 w-4" />
-            <span className="hidden md:inline">Dashboard</span>
-          </Link>
-
-          {/* Lien Admin modération */}
-          <Link
-            href="/admin"
-            title="Console Admin & Modération"
-            className={cn(
-              "hidden md:flex h-9 w-9 items-center justify-center rounded-xl border border-border text-slate-600 hover:text-client hover:bg-slate-100 transition-colors",
-              pathname === "/admin" ? "bg-slate-100 text-client border-client" : ""
-            )}
-          >
-            <Shield className="h-4 w-4" />
-          </Link>
 
           {/* Bouton Menu Mobile */}
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden flex h-9 w-9 items-center justify-center rounded-xl border border-border text-slate-700 hover:bg-slate-100 focus:outline-none"
+            className="lg:hidden flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-100 focus:outline-none"
             aria-label="Menu"
           >
             {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -127,7 +177,7 @@ export function Header() {
 
       {/* Menu Déroulant Mobile */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-b border-border bg-white px-4 py-4 space-y-3 shadow-soft-md animate-in slide-in-from-top-2 duration-150">
+        <div className="lg:hidden border-b border-slate-200 bg-white px-4 py-4 space-y-3 shadow-soft-md animate-in slide-in-from-top-2 duration-150">
           <nav className="flex flex-col space-y-2">
             {navLinks.map((link) => (
               <Link
@@ -149,23 +199,57 @@ export function Header() {
             </Link>
           </nav>
 
-          <div className="pt-3 border-t border-border flex flex-col gap-2">
-            <Link
-              href="/demandes/nouvelle"
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center justify-center gap-2 rounded-xl bg-client px-4 py-2.5 text-sm font-semibold text-white shadow-soft"
-            >
-              <PlusCircle className="h-4 w-4" />
-              <span>Publier une demande de service</span>
-            </Link>
-            <Link
-              href={dashboardHref}
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center justify-center gap-2 rounded-xl border border-border px-4 py-2.5 text-sm font-semibold text-slate-800"
-            >
-              <LayoutDashboard className="h-4 w-4" />
-              <span>Mon Espace ({isClient ? "Client" : "Jobeur"})</span>
-            </Link>
+          <div className="pt-3 border-t border-slate-200 flex flex-col gap-2">
+            {isAuthenticated ? (
+              <>
+                <Link
+                  href="/demandes/nouvelle"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center justify-center gap-2 rounded-xl bg-client px-4 py-2.5 text-sm font-semibold text-white shadow-soft"
+                >
+                  <PlusCircle className="h-4 w-4" />
+                  <span>Publier une demande de service</span>
+                </Link>
+                <Link
+                  href={dashboardHref}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-800"
+                >
+                  <LayoutDashboard className="h-4 w-4" />
+                  <span>Mon Espace ({user.name || "Profil"})</span>
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    logout();
+                  }}
+                  className="flex items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 text-red-700 px-4 py-2.5 text-sm font-semibold"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span>Se déconnecter</span>
+                </button>
+              </>
+            ) : (
+              <div className="grid grid-cols-2 gap-2">
+                <Link
+                  href="/connexion"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-800"
+                >
+                  <LogIn className="h-4 w-4" />
+                  <span>Connexion</span>
+                </Link>
+                <Link
+                  href="/inscription"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center justify-center gap-2 rounded-xl bg-client px-4 py-2.5 text-sm font-semibold text-white shadow-soft"
+                >
+                  <UserPlus className="h-4 w-4" />
+                  <span>Inscription</span>
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       )}

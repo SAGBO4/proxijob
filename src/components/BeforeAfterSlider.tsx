@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useCallback } from "react";
-import { Sparkles, MoveHorizontal } from "lucide-react";
+import { CheckCircle2, MoveHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface BeforeAfterSliderProps {
@@ -56,7 +56,7 @@ export function BeforeAfterSlider({
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-jobber-surface text-jobber-dark">
-              <Sparkles className="h-4 w-4" />
+              <CheckCircle2 className="h-4 w-4" />
             </span>
             <h4 className="font-semibold text-slate-900 text-sm sm:text-base">{title}</h4>
           </div>

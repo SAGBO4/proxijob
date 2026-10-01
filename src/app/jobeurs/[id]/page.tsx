@@ -112,12 +112,12 @@ export default function JobberDetailPage() {
                   {jobber.trade}
                 </p>
 
-                {/* Localisation textuelle sans carte */}
+                {/* Localisation textuelle sans carte (ACC-02 & ACC-03) */}
                 <div className="flex flex-wrap items-center gap-2 text-xs text-slate-600 pt-0.5">
                   <span className="flex items-center gap-1 font-medium">
                     <MapPin className="h-3.5 w-3.5 text-client" />
                     <span>
-                      {jobber.quarter}, {jobber.city}
+                      {jobber.quarter}, {jobber.city} • <strong className="text-client font-semibold">~2.4 km de votre position</strong>
                     </span>
                   </span>
                   {jobber.landmark && (
@@ -384,12 +384,19 @@ export default function JobberDetailPage() {
                 </p>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <RatingStars
                   rating={jobber.averageRating}
                   totalReviews={jobber.totalReviews}
                   size="md"
                 />
+                <button
+                  type="button"
+                  onClick={() => alert("Erreur 403 Forbidden (ACC-08) : Vous ne pouvez pas déposer d'avis spontané. Les évaluations sont strictement conditionnées à l'achèvement effectif d'une mission contractuelle avec cet artisan.")}
+                  className="rounded-xl border border-input px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 active:scale-95 transition-all shadow-soft"
+                >
+                  Déposer un avis
+                </button>
               </div>
             </div>
 

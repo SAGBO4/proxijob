@@ -12,7 +12,7 @@ import {
   Sparkles,
   ShieldCheck,
 } from "lucide-react";
-import { MOCK_JOBBERS, calculateDistanceKm } from "@/lib/mock-data";
+import { MOCK_JOBBERS, BENIN_COMMUNES, calculateDistanceKm } from "@/lib/mock-data";
 import { JobberCard } from "@/components/JobberCard";
 import { ProximityFilter, FilterState } from "@/components/ProximityFilter";
 
@@ -36,58 +36,93 @@ function JobeursContent() {
   const [sortBy, setSortBy] = useState<"relevance" | "rating" | "price_asc">("relevance");
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
+  // Référence géographique sans carte pour le calcul Haversine (ACC-03, ACC-04)
+  const userRefCoords = useMemo(() => {
+    if (filters.commune) {
+      const communeData = BENIN_COMMUNES.find(
+        (c) => c.name.toLowerCase() === filters.commune.toLowerCase()
+      );
+      if (communeData) {
+        if (filters.quarter) {
+          const quarterData = communeData.quarters.find(
+            (q) => q.name.toLowerCase() === filters.quarter.toLowerCase()
+          );
+          if (quarterData) return { lat: quarterData.latitude, lon: quarterData.longitude };
+        }
+        return { lat: communeData.latitude, lon: communeData.longitude };
+      }
+    }
+    // Barycentre par défaut de l'utilisateur actif (Fidjrossè, Cotonou)
+    return { lat: 6.3591, lon: 2.3789 };
+  }, [filters.commune, filters.quarter]);
+
   // Filtrage dynamique sans carte (ACC-02, ACC-03, ACC-04)
   const filteredJobbers = useMemo(() => {
-    return MOCK_JOBBERS.filter((jobber) => {
-      // 1. Recherche textuelle libre
-      if (filters.searchQuery.trim()) {
-        const query = filters.searchQuery.toLowerCase();
-        const matchName = jobber.name.toLowerCase().includes(query);
-        const matchTrade = jobber.trade.toLowerCase().includes(query);
-        const matchSkills = jobber.skills.some((s) => s.toLowerCase().includes(query));
-        const matchHeadline = jobber.headline.toLowerCase().includes(query);
-        if (!matchName && !matchTrade && !matchSkills && !matchHeadline) {
+    return MOCK_JOBBERS.map((jobber) => {
+      const distance = calculateDistanceKm(
+        userRefCoords.lat,
+        userRefCoords.lon,
+        jobber.latitude,
+        jobber.longitude
+      );
+      return { jobber, distance };
+    })
+      .filter(({ jobber, distance }) => {
+        // 1. Recherche textuelle libre
+        if (filters.searchQuery.trim()) {
+          const query = filters.searchQuery.toLowerCase();
+          const matchName = jobber.name.toLowerCase().includes(query);
+          const matchTrade = jobber.trade.toLowerCase().includes(query);
+          const matchSkills = jobber.skills.some((s) => s.toLowerCase().includes(query));
+          const matchHeadline = jobber.headline.toLowerCase().includes(query);
+          if (!matchName && !matchTrade && !matchSkills && !matchHeadline) {
+            return false;
+          }
+        }
+
+        // 2. Commune
+        if (filters.commune && jobber.city.toLowerCase() !== filters.commune.toLowerCase()) {
           return false;
         }
-      }
 
-      // 2. Commune
-      if (filters.commune && jobber.city.toLowerCase() !== filters.commune.toLowerCase()) {
-        return false;
-      }
+        // 3. Quartier
+        if (filters.quarter && !jobber.quarter.toLowerCase().includes(filters.quarter.toLowerCase())) {
+          return false;
+        }
 
-      // 3. Quartier
-      if (filters.quarter && !jobber.quarter.toLowerCase().includes(filters.quarter.toLowerCase())) {
-        return false;
-      }
+        // 4. Catégorie
+        if (filters.category && jobber.categorySlug !== filters.category) {
+          return false;
+        }
 
-      // 4. Catégorie
-      if (filters.category && jobber.categorySlug !== filters.category) {
-        return false;
-      }
+        // 5. ProxyTrust vérifié uniquement
+        if (filters.verifiedOnly && (!jobber.isVerified || jobber.trustBadge === "LEVEL_1_PHONE")) {
+          return false;
+        }
 
-      // 5. ProxyTrust vérifié uniquement
-      if (filters.verifiedOnly && (!jobber.isVerified || jobber.trustBadge === "LEVEL_1_PHONE")) {
-        return false;
-      }
+        // 6. Note minimale
+        if (filters.minRating > 0 && jobber.averageRating < filters.minRating) {
+          return false;
+        }
 
-      // 6. Note minimale
-      if (filters.minRating > 0 && jobber.averageRating < filters.minRating) {
-        return false;
-      }
+        // 7. Rayon de proximité dynamique sans carte (ACC-04)
+        if (filters.radiusKm && distance > filters.radiusKm) {
+          return false;
+        }
 
-      return true;
-    }).sort((a, b) => {
-      if (sortBy === "rating") {
-        return b.averageRating - a.averageRating;
-      }
-      if (sortBy === "price_asc") {
-        return a.startingPrice - b.startingPrice;
-      }
-      // Par défaut pertinence : plus grand nombre de missions réussies
-      return b.completedJobs - a.completedJobs;
-    });
-  }, [filters, sortBy]);
+        return true;
+      })
+      .sort((a, b) => {
+        if (sortBy === "rating") {
+          return b.jobber.averageRating - a.jobber.averageRating;
+        }
+        if (sortBy === "price_asc") {
+          return a.jobber.startingPrice - b.jobber.startingPrice;
+        }
+        // Par défaut pertinence : plus grand nombre de missions réussies
+        return b.jobber.completedJobs - a.jobber.completedJobs;
+      });
+  }, [filters, sortBy, userRefCoords]);
 
   return (
     <div className="min-h-screen bg-slate-50/50 py-8">
@@ -163,8 +198,8 @@ function JobeursContent() {
             {/* Liste des cartes Jobeurs */}
             {filteredJobbers.length > 0 ? (
               <div className="space-y-4">
-                {filteredJobbers.map((jobber) => (
-                  <JobberCard key={jobber.id} jobber={jobber} />
+                {filteredJobbers.map(({ jobber, distance }) => (
+                  <JobberCard key={jobber.id} jobber={jobber} userDistanceKm={distance} />
                 ))}
               </div>
             ) : (

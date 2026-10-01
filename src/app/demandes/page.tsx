@@ -12,12 +12,12 @@ import {
   CheckCircle2,
   Clock,
 } from "lucide-react";
-import { MOCK_REQUESTS, BENIN_COMMUNES, CATEGORIES } from "@/lib/mock-data";
+import { MOCK_REQUESTS, BENIN_COMMUNES, CATEGORIES, calculateDistanceKm } from "@/lib/mock-data";
 import { ServiceRequestCard } from "@/components/ServiceRequestCard";
 import { useRole } from "@/context/RoleContext";
 
 export default function DemandesPage() {
-  const { isClient, isJobber } = useRole();
+  const { isClient, isJobber, user } = useRole();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCommune, setSelectedCommune] = useState("");
@@ -25,8 +25,29 @@ export default function DemandesPage() {
   const [urgentOnly, setUrgentOnly] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<string>("ALL");
 
+  // Référence géographique sans carte de l'utilisateur actif (Fidjrossè, Cotonou)
+  const userRefCoords = useMemo(() => {
+    if (selectedCommune) {
+      const communeData = BENIN_COMMUNES.find(
+        (c) => c.name.toLowerCase() === selectedCommune.toLowerCase()
+      );
+      if (communeData) {
+        return { lat: communeData.latitude, lon: communeData.longitude };
+      }
+    }
+    return { lat: 6.3591, lon: 2.3789 };
+  }, [selectedCommune]);
+
   const filteredRequests = useMemo(() => {
-    return MOCK_REQUESTS.filter((req) => {
+    return MOCK_REQUESTS.map((req) => {
+      const distance = calculateDistanceKm(
+        userRefCoords.lat,
+        userRefCoords.lon,
+        req.latitude,
+        req.longitude
+      );
+      return { request: req, distance };
+    }).filter(({ request: req }) => {
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const matchTitle = req.title.toLowerCase().includes(q);
@@ -53,7 +74,7 @@ export default function DemandesPage() {
 
       return true;
     });
-  }, [searchQuery, selectedCommune, selectedCategory, urgentOnly, selectedStatus]);
+  }, [searchQuery, selectedCommune, selectedCategory, urgentOnly, selectedStatus, userRefCoords]);
 
   return (
     <div className="min-h-screen bg-slate-50/50 py-8">
@@ -152,8 +173,8 @@ export default function DemandesPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-            {filteredRequests.map((request) => (
-              <ServiceRequestCard key={request.id} request={request} />
+            {filteredRequests.map(({ request, distance }) => (
+              <ServiceRequestCard key={request.id} request={request} userDistanceKm={distance} />
             ))}
           </div>
 

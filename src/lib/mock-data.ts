@@ -1236,17 +1236,17 @@ export function maskSensitiveContacts(text: string, isUnlocked: boolean): { filt
   let result = text;
 
   if (linkRegex.test(result)) {
-    result = result.replace(linkRegex, "[lien masqué avant accord]");
+    result = result.replace(new RegExp(linkRegex.source, "gi"), "[lien masqué : •••••••• (devis requis)]");
     masked = true;
   }
 
   if (emailRegex.test(result)) {
-    result = result.replace(emailRegex, "[email masqué avant accord]");
+    result = result.replace(new RegExp(emailRegex.source, "gi"), "[email masqué : ••••••••@•••• (devis requis)]");
     masked = true;
   }
 
   if (phoneRegex.test(result)) {
-    result = result.replace(phoneRegex, "[numéro masqué avant accord]");
+    result = result.replace(new RegExp(phoneRegex.source, "gi"), "[numéro masqué : •••••••• (devis requis)]");
     masked = true;
   }
 

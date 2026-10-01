@@ -15,13 +15,17 @@ enum Role {
   CLIENT
   JOBBER
   ADMIN
+  MODERATOR
 }
 
 enum RequestStatus {
+  OPEN
   PENDING
   ACCEPTED
   IN_PROGRESS
   COMPLETED
+  DISPUTED
+  REOPENED
   CANCELLED
 }
 
@@ -41,6 +45,8 @@ model User {
 
   jobberProfile JobberProfile?
   requests      ServiceRequest[] @relation("ClientRequests")
+
+  @@index([role])
 }
 
 model JobberProfile {
@@ -58,6 +64,8 @@ model JobberProfile {
   isAvailable    Boolean  @default(true)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+
+  @@index([category, isAvailable])
 }
 
 model ServiceRequest {
@@ -67,11 +75,16 @@ model ServiceRequest {
   category    String
   city        String
   quarter     String
+  landmark    String?       // Repère visuel textuel (ex: "Face pharmacie Camp Guézo")
   budget      Float?
-  status      RequestStatus @default(PENDING)
+  status      RequestStatus @default(OPEN)
   isUrgent    Boolean       @default(false)
   clientId    String
   client      User          @relation("ClientRequests", fields: [clientId], references: [id], onDelete: Cascade)
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
+
+  @@index([city, category])
+  @@index([status])
+  @@index([clientId])
 }
